@@ -1,14 +1,8 @@
-
-// middleware/error.middleware.ts
-
-// Due middleware, da registrare in app.ts DOPO tutte le rotte, in quest'ordine:
-//   1. notFound      -> 404 per le rotte che non esistono
-//   2. gestoreErrori -> riceve TUTTI gli errori (throw / next(err))
-//
+// Due middleware, da registrare in app.ts 
 // Express riconosce il gestore errori perché ha QUATTRO parametri (err, req, res, next).
 //
 // Tabella degli errori gestiti:
-//   AppError (nostro)                 -> il suo statusCode
+//   AppError                          -> il suo statusCode
 //   JSON malformato nel body          -> 400
 //   ValidationError (mongoose)        -> 400 con i messaggi dei campi
 //   CastError (id non valido)         -> 400

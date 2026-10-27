@@ -1,9 +1,7 @@
 
 // controllers/commento.controller.ts
-
-// qui gestisco le recensioni dei libri salvati
-// prima controllo che il libro appartenga all'utente
-
+// recensioni dei libri salvati
+// controllo che il libro appartenga all'utente
 
 import type { Request, Response } from "express";
 import { COMMENTO_MAX } from "../config/progetto.config";

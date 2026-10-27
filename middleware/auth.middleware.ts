@@ -1,16 +1,10 @@
-
-// middleware/auth.middleware.ts
-
 // "autentica": da mettere davanti a ogni rotta protetta.
-//
-//     router.use(autentica);                 // tutte le rotte del file
-//     router.get("/me", autentica, me);      // una sola rotta
-//
+
 // Usa la strategia "jwt" di config/passport.config.ts.
-// Rispetto a  passport.authenticate("jwt", { session: false })  "nudo"
+// Rispetto a  passport.authenticate("jwt", { session: false })
 // (che risponde 401 in testo semplice "Unauthorized"), qui usiamo la
 // callback personalizzata per rispondere con il NOSTRO formato JSON
-// e con un messaggio chiaro (token mancante / scaduto / dopo logout).
+// e con un messaggio (token mancante / scaduto / dopo logout).
 
 import type { Request, Response, NextFunction } from "express";
 import passport from "passport";
@@ -34,8 +28,7 @@ export function autentica(req: Request, res: Response, next: NextFunction) {
     })(req, res, next);
 }
 
-
-// Ruoli (es. rotte solo per admin). Da usare DOPO autentica:
+// Ruoli - Da usare DOPO autentica:
 //     router.get("/admin/utenti", autentica, soloRuolo("admin"), elencoUtenti);
 // 403 = sei autenticato ma non hai il permesso.
 

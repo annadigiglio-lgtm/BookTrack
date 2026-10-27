@@ -1,9 +1,6 @@
  
 // controllers/auth.controller.ts
-
-// qui gestisco registrazione, login e profilo utente
-// le rotte stanno in routes/auth.routes.ts
-
+// registrazione, login e profilo utente
 
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
@@ -47,9 +44,15 @@ export async function register(req: Request, res: Response) {
         throw new AppError("Email già registrata", 409);
     }
 
+<<<<<<< HEAD
     // salvo solo l'hash, non la password vera
     const passwordHash = await bcrypt.hash(String(password), 10);
     const user = await User.create({ nome: name, email, password: passwordHash });
+=======
+    // salvo solo l'hash
+    const hash = await bcrypt.hash(String(password), 10);
+    const utente = await User.create({ nome, email, password: hash });
+>>>>>>> dec7ad7d50804f2fd70d310ac8c3667b27ae17a7
 
     // creo subito gli scaffali base
     if (LISTE_PREDEFINITE.length > 0) {
