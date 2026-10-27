@@ -1,7 +1,4 @@
-
-// models/Contenuto.ts
-
-// qui salvo i libri che l'utente ha aggiunto alla sua lista
+// i libri che l'utente ha aggiunto alla sua lista
 // ogni utente può avere lo stesso libro più volte, ma con profilo diverso
 
 
@@ -50,8 +47,6 @@ const contenutoSchema = new Schema(
     }
 );
 
-// Campo calcolato (non salvato nel DB): percentuale di avanzamento.
-// Esempio: pagina 150 di 300 -> 50. Se non sappiamo le pagine totali -> null.
 contenutoSchema.virtual("percentuale").get(function () {
     if (!this.pagine) return null;
     return Math.round(((this.paginaCorrente ?? 0) / this.pagine) * 100);
