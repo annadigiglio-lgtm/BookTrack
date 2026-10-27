@@ -1,134 +1,190 @@
 # BookTrack
 
-Backend Node.js (TypeScript + Bun, Express, MongoDB) per la verifica intermedia di Programmazione Node.js.
+BookTrack è un backend REST per tenere traccia dei libri che si stanno leggendo. Il progetto è realizzato con TypeScript, Bun, Express e MongoDB e usa Open Library per cercare i libri e recuperarne i dettagli.
 
-Gli utenti possono registrarsi, cercare libri su **Open Library**, salvarli, metterli sugli **scaffali**, segnare lo stato di lettura
-(*da leggere / in lettura / letto*), aggiornare la **pagina corrente** (con percentuale di avanzamento), dare un **voto da 1 a 5** e scrivere una **recensione**.
+## Funzionalità
 
-## Avvio
+- Registrazione, login e gestione del profilo utente.
+- Ricerca di libri per titolo, autore o ISBN tramite Open Library.
+- Salvataggio dei libri nella propria raccolta.
+- Creazione e gestione di scaffali personali.
+- Aggiornamento dello stato di lettura e della pagina raggiunta.
+- Valutazioni da 1 a 5 e recensioni testuali.
+- Statistiche sulla raccolta personale.
+
+## Requisiti
+
+- [Bun](https://bun.sh/) installato.
+- MongoDB in esecuzione, in locale o su un servizio remoto.
+- Connessione a Internet per le richieste a Open Library.
+
+## Installazione e avvio
+
+Dalla cartella del progetto:
 
 ```bash
-npm install
-cp .env.example .env        # se non c'è già il file .env
-npm run seed                # (facoltativo) crea l'utente prova@test.it / password123
-npm run dev                 # avvia il server
+bun install
 ```
 
-Prova: <http://localhost:3000/api/health>
+Configura le variabili d'ambiente nel file `.env` usando `.env.example` come riferimento. Assicurati che `MONGO_URI` punti al database corretto e che `PORT` corrisponda alla porta desiderata.
 
-Servono Node.js e **MongoDB acceso** (`mongodb://127.0.0.1:27017/booktrack`, modificabile in `.env`).
-Open Library è gratuita: **non serve nessuna chiave API**.
+Per avviare il server in sviluppo:
 
-| Script | A cosa serve |
+```bash
+bun run dev
+```
+
+Per l'avvio normale:
+
+```bash
+bun start
+```
+
+Quando il server è attivo, verifica il funzionamento aprendo `http://localhost:3000/api/health` (se hai configurato una porta diversa, usa quella).
+
+Il progetto usa Open Library e non richiede una chiave API.
+
+## Comandi disponibili
+
+| Comando | Descrizione |
 |---|---|
-| `npm run dev` | sviluppo, si riavvia a ogni salvataggio |
-| `npm start` | avvio normale |
-| `npm run check` | controlla gli errori di TypeScript |
-| `npm run seed` | crea l'utente di prova |
+| `bun run dev` | Avvia il server in modalità sviluppo, con riavvio automatico. |
+| `bun start` | Avvia il server. |
+| `bun run check` | Esegue il controllo TypeScript senza generare file. |
+| `bun run seed` | Crea i dati iniziali previsti dallo script `scripts/seed.ts`. |
 
-## Come è fatto il progetto
+## Struttura del progetto
 
-| Cartella / file | Contenuto |
+| Percorso | Descrizione |
 |---|---|
-| `index.ts`, `app.ts` | avvio del server e configurazione di Express |
-| `config/progetto.config.ts` | stati di lettura, voti 1-5, scaffali creati alla registrazione |
-| `config/` | `.env`, database, Passport (JWT) |
-| `models/` | `User`, `Contenuto` (il libro salvato), `Lista` (lo scaffale), `Valutazione`, `Commento` (la recensione) |
-| `services/openLibrary.service.ts` | chiamate a Open Library (ricerca e dettaglio) |
-| `controllers/` | la logica di ogni rotta |
-| `routes/` | gli URL |
-| `middleware/` | autenticazione, validazione degli id, gestione errori |
-| `utils/` | funzioni di aiuto (errori, risposte, validazione) |
-| `postman/` | collection con tutte le rotte |
+| `index.ts` | Connessione al database e avvio del server. |
+| `app.ts` | Configurazione di Express, middleware e rotte. |
+| `config/` | Configurazione di ambiente, database, Passport e impostazioni del progetto. |
+| `models/` | Modelli Mongoose per utenti, libri salvati, scaffali, valutazioni e recensioni. |
+| `controllers/` | Gestione delle richieste e preparazione delle risposte. |
+| `routes/` | Definizione degli endpoint dell'API. |
+| `services/` | Comunicazione con Open Library e gestione dei dati del catalogo. |
+| `middleware/` | Autenticazione, validazione degli ID e gestione degli errori. |
+| `utils/` | Funzioni condivise per validazione, risposte ed errori. |
+| `types/` | Tipi condivisi usati dal catalogo. |
+| `scripts/seed.ts` | Script per inserire i dati iniziali. |
+| `postman/` | Collection Postman per provare gli endpoint. |
 
-## Rotte
+## API
 
-Base URL: `http://localhost:3000/api`. 🔒 = serve l'header `Authorization: Bearer <token>`.
+URL base: `http://localhost:3000/api`.
 
-### A. Utenti
-| Metodo | URL | 🔒 | Body |
+Le rotte contrassegnate con **Sì** richiedono un token JWT nell'header:
+
+```http
+Authorization: Bearer <token>
+```
+
+### Autenticazione e profilo
+
+| Metodo | Endpoint | Autenticazione | Descrizione |
 |---|---|---|---|
-| POST | `/auth/register` | | `nome, email, password` |
-| POST | `/auth/login` | | `email, password` → restituisce il `token` |
-| POST | `/auth/logout` | 🔒 | (dopo il logout il token non vale più) |
-| GET | `/auth/me` | 🔒 | |
+| `POST` | `/auth/register` | No | Registra un utente (`nome`, `email`, `password`). |
+| `POST` | `/auth/login` | No | Effettua il login (`email`, `password`) e restituisce un token. |
+| `POST` | `/auth/logout` | Sì | Invalida il token corrente. |
+| `GET` | `/auth/me` | Sì | Restituisce il profilo dell'utente autenticato. |
+| `PATCH` | `/auth/me` | Sì | Aggiorna il profilo e, se richiesto, la password. |
+| `DELETE` | `/auth/me` | Sì | Elimina l'account e i dati associati. |
 
-### B. Open Library
-| Metodo | URL | 🔒 | Note |
+### Ricerca su Open Library
+
+| Metodo | Endpoint | Autenticazione | Descrizione |
 |---|---|---|---|
-| GET | `/ricerca?q=dune` | 🔒 | cerca per titolo, autore o ISBN insieme |
-| GET | `/ricerca?q=tolkien&campo=autore` | 🔒 | `campo` = `titolo`, `autore` o `isbn` (+ `&pagina=2`) |
-| GET | `/ricerca/book/:idEsterno` | 🔒 | dettaglio: titolo, autori, anno, pagine, generi, copertina |
+| `GET` | `/ricerca?q=dune` | Sì | Cerca per titolo, autore o ISBN. |
+| `GET` | `/ricerca?q=tolkien&campo=autore&pagina=2` | Sì | Cerca per autore e seleziona la pagina dei risultati. |
+| `GET` | `/ricerca/:tipo/:idEsterno` | Sì | Recupera il dettaglio di un libro. |
 
-`idEsterno` è l'id Open Library, ad esempio `OL45804W` (lo trovi nei risultati della ricerca).
+Il parametro `campo` accetta `titolo`, `autore` o `isbn`. Per il dettaglio, `tipo` è il tipo di contenuto previsto dal progetto e `idEsterno` è l'identificativo Open Library, ad esempio `OL45804W`.
 
-### C. I miei libri
-| Metodo | URL | 🔒 | Body / Query |
+### Libri salvati
+
+| Metodo | Endpoint | Autenticazione | Descrizione |
 |---|---|---|---|
-| POST | `/libri` | 🔒 | `idEsterno, stato?, listaId?` → salva il libro |
-| GET | `/libri` | 🔒 | `?stato=in_lettura&q=titolo&ordina=recenti\|vecchi\|titolo\|anno&pagina=&limite=` |
-| GET | `/libri/statistiche` | 🔒 | libri per stato e media dei voti |
-| GET | `/libri/:id` | 🔒 | `?completo=true` aggiunge i dati di Open Library |
-| PATCH | `/libri/:id` | 🔒 | `note?, pagine?` |
-| PATCH | `/libri/:id/stato` | 🔒 | `stato` = `da_leggere`, `in_lettura` o `letto` |
-| PATCH | `/libri/:id/progresso` | 🔒 | `paginaCorrente` → risponde con la `percentuale` (solo libri "in_lettura") |
-| DELETE | `/libri/:id` | 🔒 | elimina anche recensioni e voto |
+| `POST` | `/libri` | Sì | Salva un libro (`idEsterno`, con eventuali `stato` e `listaId`). |
+| `GET` | `/libri` | Sì | Elenca i libri salvati; supporta filtri e ordinamento. |
+| `GET` | `/libri/statistiche` | Sì | Restituisce statistiche della raccolta. |
+| `GET` | `/libri/:id` | Sì | Recupera un libro salvato; `?completo=true` richiede anche i dettagli esterni. |
+| `PATCH` | `/libri/:id` | Sì | Aggiorna i campi modificabili, come note e numero di pagine. |
+| `PATCH` | `/libri/:id/stato` | Sì | Modifica lo stato di lettura. |
+| `PATCH` | `/libri/:id/progresso` | Sì | Aggiorna la pagina corrente e restituisce la percentuale di avanzamento. |
+| `DELETE` | `/libri/:id` | Sì | Elimina il libro dalla raccolta e le valutazioni e recensioni collegate. |
 
-### D. Scaffali
-| Metodo | URL | 🔒 | Body |
+Per l'elenco si possono usare i parametri `stato`, `q`, `ordina`, `pagina` e `limite`. Gli stati previsti sono `da_leggere`, `in_lettura` e `letto`.
+
+### Scaffali
+
+| Metodo | Endpoint | Autenticazione | Descrizione |
 |---|---|---|---|
-| POST | `/scaffali` | 🔒 | `nome, descrizione?` |
-| GET | `/scaffali` | 🔒 | |
-| GET | `/scaffali/:id` | 🔒 | con i libri dentro |
-| PATCH | `/scaffali/:id` | 🔒 | `nome?, descrizione?` |
-| DELETE | `/scaffali/:id` | 🔒 | i libri restano salvati |
-| POST | `/scaffali/:id/libri` | 🔒 | `contenutoId` (aggiunge un libro) |
-| DELETE | `/scaffali/:id/libri/:contenutoId` | 🔒 | toglie il libro dallo scaffale |
-| POST | `/scaffali/:id/libri/:contenutoId/sposta` | 🔒 | `aScaffaleId` (sposta il libro in un altro scaffale) |
+| `POST` | `/scaffali` | Sì | Crea uno scaffale (`nome`, eventuale `descrizione`). |
+| `GET` | `/scaffali` | Sì | Elenca gli scaffali dell'utente. |
+| `GET` | `/scaffali/:id` | Sì | Mostra uno scaffale con i libri associati. |
+| `PATCH` | `/scaffali/:id` | Sì | Modifica nome o descrizione. |
+| `DELETE` | `/scaffali/:id` | Sì | Elimina lo scaffale, senza cancellare i libri salvati. |
+| `POST` | `/scaffali/:id/libri` | Sì | Aggiunge un libro salvato (`contenutoId`). |
+| `DELETE` | `/scaffali/:id/libri/:contenutoId` | Sì | Rimuove un libro dallo scaffale. |
+| `POST` | `/scaffali/:id/libri/:contenutoId/sposta` | Sì | Sposta un libro in un altro scaffale (`aScaffaleId`). |
 
-Alla registrazione si creano tre scaffali: **Da leggere**, **In lettura**, **Letti**.
+Alla registrazione vengono creati gli scaffali iniziali previsti dalla configurazione del progetto.
 
-### E. Voti e recensioni
-| Metodo | URL | 🔒 | Body |
+### Valutazioni e recensioni
+
+| Metodo | Endpoint | Autenticazione | Descrizione |
 |---|---|---|---|
-| PUT | `/libri/:id/valutazione` | 🔒 | `voto` (intero da 1 a 5) |
-| GET / DELETE | `/libri/:id/valutazione` | 🔒 | |
-| GET | `/libri/:id/commenti` | 🔒 | le recensioni del libro |
-| POST | `/libri/:id/commenti` | 🔒 | `testo` |
-| PATCH / DELETE | `/commenti/:id` | 🔒 | `testo` |
+| `GET` | `/libri/:contenutoId/valutazione` | Sì | Legge la valutazione dell'utente per il libro. |
+| `PUT` | `/libri/:contenutoId/valutazione` | Sì | Crea o aggiorna una valutazione da 1 a 5 (`voto`). |
+| `DELETE` | `/libri/:contenutoId/valutazione` | Sì | Elimina la valutazione. |
+| `GET` | `/libri/:contenutoId/commenti` | Sì | Elenca le recensioni del libro. |
+| `POST` | `/libri/:contenutoId/commenti` | Sì | Aggiunge una recensione (`testo`). |
+| `PATCH` | `/commenti/:id` | Sì | Modifica una recensione propria. |
+| `DELETE` | `/commenti/:id` | Sì | Elimina una recensione propria. |
 
-> ⚠️ `:id` e `contenutoId` sono l'`_id` di MongoDB del libro **salvato**, non l'id di Open Library.
-> L'id di Open Library serve solo per `/ricerca/book/...` e per `POST /libri`.
+**Attenzione agli identificativi:** `:id` e `contenutoId` indicano l'ID MongoDB del libro già salvato. `idEsterno` è invece l'ID del libro su Open Library e viene usato per la ricerca e il salvataggio iniziale.
 
-## Flusso d'uso (come in Postman)
+## Esempio di utilizzo
 
-1. `POST /auth/register` → `POST /auth/login` (copia il `token`)
-2. `GET /ricerca?q=dune` → scegli un `idEsterno`
-3. `POST /libri` con `{ "idEsterno": "OL893415W" }`
-4. `PATCH /libri/:id/stato` con `{ "stato": "in_lettura" }`
-5. `PATCH /libri/:id/progresso` con `{ "paginaCorrente": 120 }` → `percentuale`
-6. `PUT /libri/:id/valutazione` con `{ "voto": 4 }` e `POST /libri/:id/commenti` con `{ "testo": "..." }`
-7. `POST /auth/logout`
+1. Registra un account con `POST /auth/register`.
+2. Accedi con `POST /auth/login` e copia il token restituito.
+3. Cerca un libro con `GET /ricerca?q=dune`.
+4. Salvalo con `POST /libri`, passando l'`idEsterno` trovato.
+5. Aggiorna lo stato con `PATCH /libri/:id/stato`, ad esempio con `{ "stato": "in_lettura" }`.
+6. Aggiorna la pagina letta con `PATCH /libri/:id/progresso`, usando `{ "paginaCorrente": 120 }`.
+7. Aggiungi una valutazione con `PUT /libri/:id/valutazione` e una recensione con `POST /libri/:id/commenti`.
 
-## Risposte e codici HTTP
+Per le richieste protette, aggiungi sempre l'header `Authorization: Bearer <token>`.
+
+## Formato delle risposte
+
+Le risposte seguono, in generale, una struttura comune. In caso di successo:
 
 ```json
-{ "success": true,  "data": { } }
-{ "success": false, "error": { "message": "Libro non trovato", "status": 404 } }
+{
+  "success": true,
+  "data": {}
+}
 ```
 
-| Codice | Quando |
-|---|---|
-| 200 / 201 | ok / creato |
-| 400 | dati mancanti o sbagliati (stato, voto fuori da 1-5, pagina oltre il numero di pagine...) |
-| 401 | token mancante, scaduto o dopo il logout; credenziali sbagliate |
-| 404 | rotta o risorsa inesistente **o di un altro utente** |
-| 409 | duplicato (email, libro già salvato, scaffale con lo stesso nome) |
-| 502 / 503 / 504 | Open Library dà errore / troppe richieste / non risponde |
+In caso di errore:
+
+```json
+{
+  "success": false,
+  "error": {
+    "message": "Libro non trovato",
+    "status": 404
+  }
+}
+```
+
+I codici restituiti dipendono dalla richiesta: tra quelli usati ci sono `200` e `201` per operazioni riuscite, `400` per dati non validi, `401` per autenticazione non valida, `404` per risorse non trovate, `409` per conflitti e codici `5xx` per errori del server o del servizio esterno.
 
 ## Sicurezza
 
-- password salvate solo come hash **bcrypt**
-- **logout vero**: il token viene azzerato sul server
-- ogni query filtra per utente: nessuno vede o modifica i libri, gli scaffali e le recensioni di un altro
-- limite ai tentativi di login (10 ogni 15 minuti)
+- Le password vengono salvate come hash bcrypt.
+- Il logout invalida il token memorizzato sul server.
+- Le operazioni sui dati personali sono limitate all'utente autenticato.
+- I tentativi di login sono limitati a 10 ogni 15 minuti.
