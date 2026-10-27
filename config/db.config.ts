@@ -1,7 +1,6 @@
 
 // config/db.config.ts
-
-// qui mi connetto a MongoDB all'avvio
+// connetto a MongoDB all'avvio
 
 import mongoose from "mongoose";
 import { env } from "./env.config";
