@@ -1,6 +1,5 @@
-// ============================================================
-// scripts/seed.ts
-// ============================================================
+
+
 // Crea (o ricrea) un utente di prova con i suoi scaffali predefiniti.
 //     npm run seed
 //

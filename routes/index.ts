@@ -1,9 +1,9 @@
-// ============================================================
+
 // routes/index.ts
-// ============================================================
+
 // qui monto tutte le rotte dell'api
 // app.ts usa questo router sotto /api
-// ============================================================
+
 
 import { Router } from "express";
 import authRoutes from "./auth.routes";

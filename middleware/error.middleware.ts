@@ -1,6 +1,6 @@
-// ============================================================
+
 // middleware/error.middleware.ts
-// ============================================================
+
 // Due middleware, da registrare in app.ts DOPO tutte le rotte, in quest'ordine:
 //   1. notFound      -> 404 per le rotte che non esistono
 //   2. gestoreErrori -> riceve TUTTI gli errori (throw / next(err))
@@ -15,7 +15,7 @@
 //   codice 11000 (chiave duplicata)   -> 409
 //   JsonWebTokenError / Expired       -> 401
 //   tutto il resto                    -> 500 (senza dettagli interni al client)
-// ============================================================
+
 
 import type { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError";

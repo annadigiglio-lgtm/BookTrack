@@ -1,9 +1,9 @@
-// ============================================================
+
 // controllers/contenuto.controller.ts
-// ============================================================
+
 // qui gestisco i libri salvati dall'utente
 // ogni query filtra sempre per user = idUtente(req)
-// ============================================================
+
 
 import type { Request, Response } from "express";
 import { STATI, STATO_DEFAULT, TIPI_CONTENUTO } from "../config/progetto.config";

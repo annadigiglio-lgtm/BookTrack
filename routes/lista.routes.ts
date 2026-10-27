@@ -1,9 +1,8 @@
-// ============================================================
+
 // routes/lista.routes.ts
-// ============================================================
+
 // qui ci sono gli scaffali dell'utente
 // tutte le rotte sono protette
-// ============================================================
 
 import { Router } from "express";
 import { autentica } from "../middleware/auth.middleware";

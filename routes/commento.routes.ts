@@ -1,10 +1,10 @@
-// ============================================================
+
 // routes/commento.routes.ts
-// ============================================================
+
 // qui ci sono le due parti dei commenti
 // una sotto /api/libri/:contenutoId/commenti
 // l'altra sotto /api/commenti
-// ============================================================
+
 
 import { Router } from "express";
 import { autentica } from "../middleware/auth.middleware";

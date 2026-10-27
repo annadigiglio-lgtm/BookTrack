@@ -1,9 +1,9 @@
-// ============================================================
+
 // models/User.ts
-// ============================================================
+
 // qui salvo i dati dell'utente
 // password e token sono nascosti di default
-// ============================================================
+
 
 import mongoose, { Schema } from "mongoose";
 

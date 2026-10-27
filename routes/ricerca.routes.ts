@@ -1,6 +1,6 @@
-// ============================================================
+
 // routes/ricerca.routes.ts
-// ============================================================
+
 // Montato su /api/ricerca.
 //
 // | Metodo | URL                 | Query                                 | Controller |
@@ -9,7 +9,7 @@
 // | GET    | /:tipo/:idEsterno   |                                       | dettaglio  |
 //
 // La ricerca è riservata agli utenti autenticati ("l'utente autenticato può cercare libri").
-// ============================================================
+
 
 import { Router } from "express";
 import { autentica } from "../middleware/auth.middleware";

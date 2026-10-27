@@ -1,9 +1,9 @@
-// ============================================================
+
 // models/Contenuto.ts
-// ============================================================
+
 // qui salvo i libri che l'utente ha aggiunto alla sua lista
 // ogni utente può avere lo stesso libro più volte, ma con profilo diverso
-// ============================================================
+
 
 import mongoose, { Schema } from "mongoose";
 import { TIPI_CONTENUTO, STATI, STATO_DEFAULT } from "../config/progetto.config";

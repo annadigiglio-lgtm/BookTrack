@@ -1,6 +1,6 @@
-// ============================================================
+
 // middleware/auth.middleware.ts
-// ============================================================
+
 // "autentica": da mettere davanti a ogni rotta protetta.
 //
 //     router.use(autentica);                 // tutte le rotte del file
@@ -11,7 +11,6 @@
 // (che risponde 401 in testo semplice "Unauthorized"), qui usiamo la
 // callback personalizzata per rispondere con il NOSTRO formato JSON
 // e con un messaggio chiaro (token mancante / scaduto / dopo logout).
-// ============================================================
 
 import type { Request, Response, NextFunction } from "express";
 import passport from "passport";

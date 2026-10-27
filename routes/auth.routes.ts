@@ -1,9 +1,9 @@
-// ============================================================
+
 // routes/auth.routes.ts
-// ============================================================
+
 // qui ci sono le rotte di login e profilo
 // montate sotto /api/auth
-// ============================================================
+
 
 import { Router } from "express";
 import { rateLimit } from "express-rate-limit";

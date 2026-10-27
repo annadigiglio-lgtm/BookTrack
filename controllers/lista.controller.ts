@@ -1,9 +1,9 @@
-// ============================================================
+
 // controllers/lista.controller.ts
-// ============================================================
+
 // qui gestisco gli scaffali personali dell'utente
 // togliere uno scaffale non cancella i libri salvati
-// ============================================================
+
 
 import type { Request, Response } from "express";
 import Lista from "../models/Lista";
