@@ -1,15 +1,10 @@
-
-// middleware/validaId.middleware.ts  –  usato da TUTTI
-
 // Controlla che i parametri dell'URL che sono _id di MongoDB siano validi
 // PRIMA di arrivare al controller. Altrimenti risponde 400.
 //
 //     router.get("/:id", validaId("id"), getContenuto);
 //     router.delete("/:id/contenuti/:contenutoId", validaId("id", "contenutoId"), ...);
 //
-// Senza questo controllo, un id tipo "abc" farebbe lanciare a Mongoose
 // un CastError (che l'error middleware gestisce comunque come 400,
-// ma così il messaggio è più chiaro e dice QUALE parametro è sbagliato).
 
 
 import type { Request, Response, NextFunction } from "express";
