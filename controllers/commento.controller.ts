@@ -15,62 +15,62 @@ import { ok } from "../utils/risposta";
 import { idUtente } from "../utils/utente";
 import { campiObbligatori } from "../utils/validazione";
 
-function leggiTesto(body: any): string {
+function readText(body: any): string {
     campiObbligatori(body, ["testo"]);
-    const testo = String(body.testo).trim();
-    if (testo.length > COMMENTO_MAX) {
+    const text = String(body.testo).trim();
+    if (text.length > COMMENTO_MAX) {
         throw new AppError(`Il commento può avere al massimo ${COMMENTO_MAX} caratteri`, 400);
     }
-    return testo;
+    return text;
 }
 
 
 // GET /api/libri/:contenutoId/commenti
 
-export async function elenco(req: Request, res: Response) {
+export async function getComments(req: Request, res: Response) {
     const userId = idUtente(req);
     await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
 
     // li prendo dal più recente e aggiungo il nome dell'autore
-    const commenti = await Commento.find({ contenuto: req.params.contenutoId })
+    const comments = await Commento.find({ contenuto: req.params.contenutoId })
         .sort({ createdAt: -1 })
         .populate("user", "nome");
-    return ok(res, commenti);
+    return ok(res, comments);
 }
 
 
 // POST /api/libri/:contenutoId/commenti     body: { testo }
 
-export async function crea(req: Request, res: Response) {
+export async function createComment(req: Request, res: Response) {
     const userId = idUtente(req);
-    const testo = leggiTesto(req.body);
-    const contenuto = await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
+    const text = readText(req.body);
+    const content = await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
 
-    const commento = await Commento.create({ user: userId, contenuto: contenuto._id, testo });
-    return ok(res, commento, 201);
+    const comment = await Commento.create({ user: userId, contenuto: content._id, testo: text });
+    return ok(res, comment, 201);
 }
 
 
 // PATCH /api/commenti/:id      body: { testo }
 
 // solo l'autore può cambiarlo
-export async function aggiorna(req: Request, res: Response) {
-    const testo = leggiTesto(req.body);
-    const commento = await Commento.findOneAndUpdate(
+export async function updateComment(req: Request, res: Response) {
+    const text = readText(req.body);
+    const comment = await Commento.findOneAndUpdate(
         { _id: req.params.id, user: idUtente(req) },
-        { testo },
+        { testo: text },
         { returnDocument: "after", runValidators: true }
     );
-    if (!commento) throw new AppError("Commento non trovato", 404);
-    return ok(res, commento);
+    if (!comment) throw new AppError("Commento non trovato", 404);
+    return ok(res, comment);
 }
 
 
 // DELETE /api/commenti/:id
 
-export async function elimina(req: Request, res: Response) {
-    const commento = await Commento.findOneAndDelete({ _id: req.params.id, user: idUtente(req) });
-    if (!commento) throw new AppError("Commento non trovato", 404);
-    return ok(res, { messaggio: "Commento eliminato", id: commento._id });
+export async function deleteComment(req: Request, res: Response) {
+    const comment = await Commento.findOneAndDelete({ _id: req.params.id, user: idUtente(req) });
+    if (!comment) throw new AppError("Commento non trovato", 404);
+    return ok(res, { messaggio: "Commento eliminato", id: comment._id });
 }
 

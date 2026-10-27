@@ -32,7 +32,7 @@ function creaToken(userId: unknown): string {
 
 export async function register(req: Request, res: Response) {
     campiObbligatori(req.body, ["nome", "email", "password"]);
-    const { nome, email, password } = req.body;
+    const { nome: name, email, password } = req.body;
 
     if (!emailValida(email)) {
         throw new AppError("Formato email non valido", 400);
@@ -42,22 +42,22 @@ export async function register(req: Request, res: Response) {
     }
 
     // controllo se l'email è già usata
-    const esiste = await User.exists({ email: String(email).toLowerCase() });
-    if (esiste) {
+    const userExists = await User.exists({ email: String(email).toLowerCase() });
+    if (userExists) {
         throw new AppError("Email già registrata", 409);
     }
 
     // salvo solo l'hash, non la password vera
-    const hash = await bcrypt.hash(String(password), 10);
-    const utente = await User.create({ nome, email, password: hash });
+    const passwordHash = await bcrypt.hash(String(password), 10);
+    const user = await User.create({ nome: name, email, password: passwordHash });
 
     // creo subito gli scaffali base
     if (LISTE_PREDEFINITE.length > 0) {
-        await Lista.insertMany(LISTE_PREDEFINITE.map((nomeLista) => ({ user: utente._id, nome: nomeLista })));
+        await Lista.insertMany(LISTE_PREDEFINITE.map((listName) => ({ user: user._id, nome: listName })));
     }
 
     // rispondo con 201 anche se il modello toJSON toglie password e token
-    return ok(res, utente, 201);
+    return ok(res, user, 201);
 }
 
 
@@ -68,25 +68,25 @@ export async function login(req: Request, res: Response) {
     const { email, password } = req.body;
 
     // il campo password è nascosto di default, quindi lo chiedo esplicitamente
-    const utente = await User.findOne({ email: String(email).toLowerCase() }).select("+password");
+    const user = await User.findOne({ email: String(email).toLowerCase() }).select("+password");
 
     // faccio lo stesso errore per email o password sbagliate
-    const passwordGiusta = utente ? await bcrypt.compare(String(password), utente.password) : false;
-    if (!utente || !passwordGiusta) {
+    const passwordMatches = user ? await bcrypt.compare(String(password), user.password) : false;
+    if (!user || !passwordMatches) {
         throw new AppError("Credenziali non valide", 401);
     }
 
-    const token = creaToken(utente._id);
+    const token = creaToken(user._id);
 
     // salvo il token per fare il logout
-    utente.token = token;
-    await utente.save();
+    user.token = token;
+    await user.save();
 
     return ok(res, {
         token,
         tipo: "Bearer",
         scadenza: env.jwtExpiresIn,
-        utente, // senza password/token grazie al toJSON
+        utente: user, // senza password/token grazie al toJSON
     });
 }
 
@@ -111,28 +111,28 @@ export async function me(req: Request, res: Response) {
 // PATCH /api/auth/me   body: { nome?, passwordAttuale?, nuovaPassword? }
 
 export async function aggiornaMe(req: Request, res: Response) {
-    const { nome, passwordAttuale, nuovaPassword } = req.body ?? {};
-    const utente = await User.findById(idUtente(req)).select("+password");
-    if (!utente) throw new AppError("Utente non trovato", 404);
+    const { nome: name, passwordAttuale: currentPassword, nuovaPassword: newPassword } = req.body ?? {};
+    const user = await User.findById(idUtente(req)).select("+password");
+    if (!user) throw new AppError("Utente non trovato", 404);
 
-    if (nome !== undefined) {
-        if (!String(nome).trim()) throw new AppError("Il nome non può essere vuoto", 400);
-        utente.nome = String(nome).trim();
+    if (name !== undefined) {
+        if (!String(name).trim()) throw new AppError("Il nome non può essere vuoto", 400);
+        user.nome = String(name).trim();
     }
 
     // se cambio password, controllo prima quella attuale
-    if (nuovaPassword !== undefined) {
-        if (!passwordAttuale || !(await bcrypt.compare(String(passwordAttuale), utente.password))) {
+    if (newPassword !== undefined) {
+        if (!currentPassword || !(await bcrypt.compare(String(currentPassword), user.password))) {
             throw new AppError("Password attuale errata", 401);
         }
-        if (String(nuovaPassword).length < PASSWORD_MIN) {
+        if (String(newPassword).length < PASSWORD_MIN) {
             throw new AppError(`La password deve avere almeno ${PASSWORD_MIN} caratteri`, 400);
         }
-        utente.password = await bcrypt.hash(String(nuovaPassword), 10);
+        user.password = await bcrypt.hash(String(newPassword), 10);
     }
 
-    await utente.save();
-    return ok(res, utente);
+    await user.save();
+    return ok(res, user);
 }
 
 
