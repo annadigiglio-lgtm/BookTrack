@@ -1,7 +1,6 @@
 
 // controllers/contenuto.controller.ts
-
-// qui gestisco i libri salvati dall'utente
+// libri salvati dall'utente
 // ogni query filtra sempre per user = idUtente(req)
 
 

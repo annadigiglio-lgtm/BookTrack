@@ -1,7 +1,5 @@
-
 // controllers/lista.controller.ts
-
-// qui gestisco gli scaffali personali dell'utente
+// scaffali personali dell'utente
 // togliere uno scaffale non cancella i libri salvati
 
 
@@ -89,7 +87,7 @@ export async function elimina(req: Request, res: Response) {
 
 // POST /api/scaffali/:id/libri     body: { contenutoId }
 
-// qui aggiungo un libro già salvato a uno scaffale
+// aggiungo un libro già salvato a uno scaffale
 export async function aggiungiContenuto(req: Request, res: Response) {
     campiObbligatori(req.body, ["contenutoId"]);
     const { contenutoId } = req.body;

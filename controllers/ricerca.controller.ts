@@ -1,8 +1,5 @@
-
 // controllers/ricerca.controller.ts
-
-// il cliente chiama il nostro server, poi noi chiamiamo l'API esterna
-// così la chiave resta sul server
+// client chiama il nostro server, poi noi chiamiamo l'API esterna
 
 import type { Request, Response } from "express";
 import { TIPI_CONTENUTO } from "../config/progetto.config";
