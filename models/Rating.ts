@@ -1,12 +1,12 @@
 
-// models/Valutazione.ts
+// models/Rating.ts
 
 // qui salvo la valutazione che l'utente dà a un suo libro
 // per ogni libro c'è solo un voto per utente
 
 
 import mongoose, { Schema } from "mongoose";
-import { VOTO_MIN, VOTO_MAX } from "../config/progetto.config";
+import { VOTO_MIN, VOTO_MAX } from "../config/project.config";
 
 const valutazioneSchema = new Schema(
     {

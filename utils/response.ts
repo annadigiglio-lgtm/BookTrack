@@ -1,5 +1,5 @@
 
-// utils/risposta.ts  –  usato da TUTTI
+// utils/response.ts  –  usato da TUTTI
 
 // Formato UNICO delle risposte (deciso una volta, uguale per tutti):
 //

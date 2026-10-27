@@ -16,7 +16,7 @@
 import express from "express";
 import passport from "./config/passport.config"; // mi serve per registrare la strategia JWT
 import routes from "./routes";
-import { notFound, gestoreErrori } from "./middleware/error.middleware";
+import { notFound, handleError } from "./middleware/error.middleware";
 
 const app = express();
 
@@ -40,6 +40,6 @@ app.use("/api", routes);
 
 // 404 e errori vanno sempre in fondo
 app.use(notFound);
-app.use(gestoreErrori);
+app.use(handleError);
 
 export default app;

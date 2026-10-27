@@ -11,12 +11,12 @@
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { connectDB } from "../config/db.config";
-import { LISTE_PREDEFINITE } from "../config/progetto.config";
+import { LISTE_PREDEFINITE } from "../config/project.config";
 import User from "../models/User";
-import Lista from "../models/Lista";
-import Contenuto from "../models/Contenuto";
-import Commento from "../models/Commento";
-import Valutazione from "../models/Valutazione";
+import Lista from "../models/Shelf";
+import Contenuto from "../models/Content";
+import Commento from "../models/Comment";
+import Valutazione from "../models/Rating";
 
 const EMAIL = "prova@test.it";
 const PASSWORD = "password123";

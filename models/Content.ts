@@ -3,7 +3,7 @@
 
 
 import mongoose, { Schema } from "mongoose";
-import { TIPI_CONTENUTO, STATI, STATO_DEFAULT } from "../config/progetto.config";
+import { TIPI_CONTENUTO, STATI, STATO_DEFAULT } from "../config/project.config";
 
 const contenutoSchema = new Schema(
     {
@@ -14,7 +14,7 @@ const contenutoSchema = new Schema(
         fonte: { type: String, required: true },
         // Id del libro su Open Library, es. "OL45804W"
         idEsterno: { type: String, required: true },
-        // "book" (valori presi da config/progetto.config.ts)
+        // "book" (valori presi da config/project.config.ts)
         tipo: { type: String, enum: [...TIPI_CONTENUTO], required: true },
 
         // Dati "di vetrina" copiati dall'API al momento del salvataggio

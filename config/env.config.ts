@@ -4,7 +4,7 @@
 
 
 // prendo un valore obbligatorio e blocco il server se manca
-function obbligatoria(nome: string): string {
+function requireEnv(nome: string): string {
     const valore = process.env[nome];
     if (!valore) {
         throw new Error(`Variabile d'ambiente mancante: ${nome} (controllate il file .env)`);
@@ -19,7 +19,7 @@ export const env = {
     mongoUri: process.env.MONGO_URI || "mongodb://127.0.0.1:27017/booktrack",
 
     // JWT
-    jwtSecret: obbligatoria("JWT_SECRET"),
+    jwtSecret: requireEnv("JWT_SECRET"),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1h",
 
     // Open Library

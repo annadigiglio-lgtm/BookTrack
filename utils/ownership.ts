@@ -1,5 +1,5 @@
 
-// utils/proprieta.ts  –  usato da TUTTI
+// utils/ownership.ts  –  usato da TUTTI
 
 // "Ogni utente può gestire SOLO i propri dati" (requisito di entrambe le prove).
 //
@@ -9,13 +9,13 @@
 // (404 e non 403: così non diciamo nemmeno che quell'id esiste.)
 //
 // Questa funzione fa proprio questo e lancia l'errore se non trova nulla:
-//     const lista = await trovaMio(Lista, req.params.id, idUtente(req), "Lista");
+//     const lista = await findOwnedDocument(Lista, req.params.id, getUserId(req), "Lista");
 
 
 import type { Model } from "mongoose";
 import { AppError } from "./AppError";
 
-export async function trovaMio(modello: Model<any>, id: unknown, userId: unknown, nome = "Elemento") {
+export async function findOwnedDocument(modello: Model<any>, id: unknown, userId: unknown, nome = "Elemento") {
     const documento = await modello.findOne({ _id: id, user: userId });
     if (!documento) {
         throw new AppError(`${nome} non trovato`, 404);

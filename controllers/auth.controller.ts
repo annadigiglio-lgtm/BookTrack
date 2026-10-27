@@ -6,19 +6,19 @@ import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt, { type SignOptions } from "jsonwebtoken";
 import { env } from "../config/env.config";
-import { LISTE_PREDEFINITE, PASSWORD_MIN } from "../config/progetto.config";
+import { LISTE_PREDEFINITE, PASSWORD_MIN } from "../config/project.config";
 import User from "../models/User";
-import Contenuto from "../models/Contenuto";
-import Lista from "../models/Lista";
-import Commento from "../models/Commento";
-import Valutazione from "../models/Valutazione";
+import Contenuto from "../models/Content";
+import Lista from "../models/Shelf";
+import Commento from "../models/Comment";
+import Valutazione from "../models/Rating";
 import { AppError } from "../utils/AppError";
-import { ok } from "../utils/risposta";
-import { idUtente } from "../utils/utente";
-import { campiObbligatori, emailValida } from "../utils/validazione";
+import { ok } from "../utils/response";
+import { getUserId } from "../utils/user";
+import { requireFields, isValidEmail } from "../utils/validation";
 
 // creo il token con l'id dell'utente
-function creaToken(userId: unknown): string {
+function createToken(userId: unknown): string {
     return jwt.sign({ id: String(userId) }, env.jwtSecret, {
         expiresIn: env.jwtExpiresIn as SignOptions["expiresIn"],
         algorithm: "HS256",
@@ -28,10 +28,10 @@ function creaToken(userId: unknown): string {
 // POST /api/auth/register      body: { nome, email, password }
 
 export async function register(req: Request, res: Response) {
-    campiObbligatori(req.body, ["nome", "email", "password"]);
+    requireFields(req.body, ["nome", "email", "password"]);
     const { nome: name, email, password } = req.body;
 
-    if (!emailValida(email)) {
+    if (!isValidEmail(email)) {
         throw new AppError("Formato email non valido", 400);
     }
     if (String(password).length < PASSWORD_MIN) {
@@ -61,7 +61,7 @@ export async function register(req: Request, res: Response) {
 // POST /api/auth/login         body: { email, password }
 
 export async function login(req: Request, res: Response) {
-    campiObbligatori(req.body, ["email", "password"]);
+    requireFields(req.body, ["email", "password"]);
     const { email, password } = req.body;
 
     // il campo password è nascosto di default, quindi lo chiedo esplicitamente
@@ -73,7 +73,7 @@ export async function login(req: Request, res: Response) {
         throw new AppError("Credenziali non valide", 401);
     }
 
-    const token = creaToken(user._id);
+    const token = createToken(user._id);
 
     // salvo il token per fare il logout
     user.token = token;
@@ -92,7 +92,7 @@ export async function login(req: Request, res: Response) {
 
 // il JWT non si cancella da solo, quindi lo salvo a null nel database
 export async function logout(req: Request, res: Response) {
-    await User.updateOne({ _id: idUtente(req) }, { token: null });
+    await User.updateOne({ _id: getUserId(req) }, { token: null });
     return ok(res, { messaggio: "Logout effettuato" });
 }
 
@@ -107,9 +107,9 @@ export async function me(req: Request, res: Response) {
 
 // PATCH /api/auth/me   body: { nome?, passwordAttuale?, nuovaPassword? }
 
-export async function aggiornaMe(req: Request, res: Response) {
+export async function updateMe(req: Request, res: Response) {
     const { nome: name, passwordAttuale: currentPassword, nuovaPassword: newPassword } = req.body ?? {};
-    const user = await User.findById(idUtente(req)).select("+password");
+    const user = await User.findById(getUserId(req)).select("+password");
     if (!user) throw new AppError("Utente non trovato", 404);
 
     if (name !== undefined) {
@@ -136,8 +136,8 @@ export async function aggiornaMe(req: Request, res: Response) {
 // DELETE /api/auth/me
 
 // cancello anche tutti i dati legati a questo utente
-export async function eliminaMe(req: Request, res: Response) {
-    const userId = idUtente(req);
+export async function deleteMe(req: Request, res: Response) {
+    const userId = getUserId(req);
     await Promise.all([
         Contenuto.deleteMany({ user: userId }),
         Lista.deleteMany({ user: userId }),

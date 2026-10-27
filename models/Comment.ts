@@ -3,7 +3,7 @@
 
 
 import mongoose, { Schema } from "mongoose";
-import { COMMENTO_MAX } from "../config/progetto.config";
+import { COMMENTO_MAX } from "../config/project.config";
 
 const commentoSchema = new Schema(
     {

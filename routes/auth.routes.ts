@@ -7,8 +7,8 @@
 
 import { Router } from "express";
 import { rateLimit } from "express-rate-limit";
-import { autentica } from "../middleware/auth.middleware";
-import { register, login, logout, me, aggiornaMe, eliminaMe } from "../controllers/auth.controller";
+import { authenticate } from "../middleware/auth.middleware";
+import { register, login, logout, me, updateMe, deleteMe } from "../controllers/auth.controller";
 
 const router = Router();
 
@@ -26,9 +26,9 @@ router.post("/register", register);
 router.post("/login", limiteLogin, login);
 
 // protette
-router.post("/logout", autentica, logout);
-router.get("/me", autentica, me);
-router.patch("/me", autentica, aggiornaMe);
-router.delete("/me", autentica, eliminaMe);
+router.post("/logout", authenticate, logout);
+router.get("/me", authenticate, me);
+router.patch("/me", authenticate, updateMe);
+router.delete("/me", authenticate, deleteMe);
 
 export default router;

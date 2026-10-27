@@ -1,5 +1,5 @@
 
-// models/Lista.ts
+// models/Shelf.ts
 
 // qui salvo gli scaffali creati dall'utente
 // lo stato del libro sta sul libro, non sullo scaffale

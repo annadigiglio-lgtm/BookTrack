@@ -1,4 +1,4 @@
-// "autentica": da mettere davanti a ogni rotta protetta.
+// "authenticate": da mettere davanti a ogni rotta protetta.
 
 // Usa la strategia "jwt" di config/passport.config.ts.
 // Rispetto a  passport.authenticate("jwt", { session: false })
@@ -10,7 +10,7 @@ import type { Request, Response, NextFunction } from "express";
 import passport from "passport";
 import { AppError } from "../utils/AppError";
 
-export function autentica(req: Request, res: Response, next: NextFunction) {
+export function authenticate(req: Request, res: Response, next: NextFunction) {
     passport.authenticate("jwt", { session: false }, (err: any, utente: any, info: any) => {
         if (err) return next(err);
 
@@ -23,16 +23,16 @@ export function autentica(req: Request, res: Response, next: NextFunction) {
             return next(new AppError(messaggio, 401));
         }
 
-        req.user = utente; // da qui in poi: idUtente(req) in utils/utente.ts
+        req.user = utente; // da qui in poi: getUserId(req) in utils/user.ts
         next();
     })(req, res, next);
 }
 
-// Ruoli - Da usare DOPO autentica:
-//     router.get("/admin/utenti", autentica, soloRuolo("admin"), elencoUtenti);
+// Ruoli - Da usare DOPO authenticate:
+//     router.get("/admin/utenti", authenticate, requireRole("admin"), elencoUtenti);
 // 403 = sei autenticato ma non hai il permesso.
 
-export function soloRuolo(...ruoli: string[]) {
+export function requireRole(...ruoli: string[]) {
     return (req: Request, _res: Response, next: NextFunction) => {
         const ruolo = (req.user as any)?.ruolo;
         if (!ruoli.includes(ruolo)) {

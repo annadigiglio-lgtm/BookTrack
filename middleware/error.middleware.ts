@@ -18,7 +18,7 @@ export function notFound(req: Request, _res: Response, next: NextFunction) {
     next(new AppError(`Rotta non trovata: ${req.method} ${req.originalUrl}`, 404));
 }
 
-export function gestoreErrori(err: any, _req: Request, res: Response, _next: NextFunction) {
+export function handleError(err: any, _req: Request, res: Response, _next: NextFunction) {
     let status = 500;
     let message = "Errore interno del server";
 

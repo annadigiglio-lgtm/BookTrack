@@ -7,10 +7,10 @@
 
 import { Router } from "express";
 import authRoutes from "./auth.routes";
-import ricercaRoutes from "./ricerca.routes";
-import contenutoRoutes from "./contenuto.routes";
-import listaRoutes from "./lista.routes";
-import commentoRoutes from "./commento.routes";
+import ricercaRoutes from "./search.routes";
+import contenutoRoutes from "./content.routes";
+import listaRoutes from "./shelf.routes";
+import commentoRoutes from "./comment.routes";
 
 const router = Router();
 

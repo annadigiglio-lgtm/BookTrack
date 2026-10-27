@@ -1,21 +1,21 @@
 
-// controllers/contenuto.controller.ts
+// controllers/content.controller.ts
 // libri salvati dall'utente
-// ogni query filtra sempre per user = idUtente(req)
+// ogni query filtra sempre per user = getUserId(req)
 
 
 import type { Request, Response } from "express";
-import { STATI, STATO_DEFAULT, TIPI_CONTENUTO } from "../config/progetto.config";
-import Contenuto from "../models/Contenuto";
-import Lista from "../models/Lista";
-import Commento from "../models/Commento";
-import Valutazione from "../models/Valutazione";
-import * as catalogo from "../services/catalogo.service";
+import { STATI, STATO_DEFAULT, TIPI_CONTENUTO } from "../config/project.config";
+import Contenuto from "../models/Content";
+import Lista from "../models/Shelf";
+import Commento from "../models/Comment";
+import Valutazione from "../models/Rating";
+import * as catalogo from "../services/catalog.service";
 import { AppError } from "../utils/AppError";
-import { trovaMio } from "../utils/proprieta";
-import { ok } from "../utils/risposta";
-import { idUtente } from "../utils/utente";
-import { campiObbligatori, isObjectId, leggiPaginazione, numeroTra, valoreAmmesso } from "../utils/validazione";
+import { findOwnedDocument } from "../utils/ownership";
+import { ok } from "../utils/response";
+import { getUserId } from "../utils/user";
+import { requireFields, isValidObjectId, parsePagination, numberInRange, allowedValue } from "../utils/validation";
 
 // campi ordinabili disponibili
 const ORDINAMENTI: Record<string, Record<string, 1 | -1>> = {
@@ -34,16 +34,16 @@ function escapeRegex(testo: string) {
 // POST /api/libri      body: { idEsterno, stato?, listaId? }
 
 // il client manda solo l'id di Open Library e noi prendiamo i dati reali dall'API
-export async function salva(req: Request, res: Response) {
-    campiObbligatori(req.body, ["idEsterno"]);
-    const userId = idUtente(req);
+export async function save(req: Request, res: Response) {
+    requireFields(req.body, ["idEsterno"]);
+    const userId = getUserId(req);
     // il tipo non è obbligatorio perché qui c'è solo il libro
-    const tipo = valoreAmmesso(req.body.tipo ?? TIPI_CONTENUTO[0], TIPI_CONTENUTO, "tipo");
+    const tipo = allowedValue(req.body.tipo ?? TIPI_CONTENUTO[0], TIPI_CONTENUTO, "tipo");
     const idEsterno = String(req.body.idEsterno).trim();
-    const stato = req.body.stato !== undefined ? valoreAmmesso(req.body.stato, STATI, "stato") : STATO_DEFAULT;
+    const stato = req.body.stato !== undefined ? allowedValue(req.body.stato, STATI, "stato") : STATO_DEFAULT;
 
     // 1. prendo i dati reali dall'API
-    const dati = await catalogo.dettaglio(idEsterno, tipo);
+    const dati = await catalogo.getDetails(idEsterno, tipo);
 
     // 2. controllo se questo libro è già salvato dall'utente
     const esiste = await Contenuto.exists({ user: userId, fonte: dati.fonte, tipo, idEsterno: dati.idEsterno });
@@ -51,7 +51,7 @@ export async function salva(req: Request, res: Response) {
         throw new AppError("Libro già salvato", 409);
     }
 
-    // 3. salvo il libro senza tenere tutto il dettaglio dell'API
+// 3. salvo il libro senza tenere tutto il dettaglio dell'API
     const contenuto = await Contenuto.create({
         user: userId,
         fonte: dati.fonte,
@@ -68,8 +68,8 @@ export async function salva(req: Request, res: Response) {
 
     // 4. se arriva listaId, lo aggiungo subito a quello scaffale
     if (req.body.listaId) {
-        if (!isObjectId(req.body.listaId)) throw new AppError("listaId non valido", 400);
-        await trovaMio(Lista, req.body.listaId, userId, "Scaffale");
+        if (!isValidObjectId(req.body.listaId)) throw new AppError("listaId non valido", 400);
+        await findOwnedDocument(Lista, req.body.listaId, userId, "Scaffale");
         await Lista.updateOne({ _id: req.body.listaId, user: userId }, { $addToSet: { contenuti: contenuto._id } });
     }
 
@@ -80,17 +80,17 @@ export async function salva(req: Request, res: Response) {
 // GET /api/libri?stato=&q=&ordina=&pagina=&limite=
 
 // i filtri sono tutti opzionali
-export async function elenco(req: Request, res: Response) {
-    const filtro: Record<string, unknown> = { user: idUtente(req) };
+export async function getAll(req: Request, res: Response) {
+    const filtro: Record<string, unknown> = { user: getUserId(req) };
 
-    if (req.query.stato) filtro.stato = valoreAmmesso(req.query.stato, STATI, "stato");
+    if (req.query.stato) filtro.stato = allowedValue(req.query.stato, STATI, "stato");
     if (req.query.q) {
         // ricerca senza differenziare maiuscole e minuscole
         filtro.titolo = { $regex: escapeRegex(String(req.query.q)), $options: "i" };
     }
 
     const ordina = ORDINAMENTI[String(req.query.ordina ?? "recenti")] ?? ORDINAMENTI.recenti;
-    const { pagina, limite, skip } = leggiPaginazione(req.query);
+    const { pagina, limite, skip } = parsePagination(req.query);
 
     // faccio le due query insieme
     const [risultati, totale] = await Promise.all([
@@ -111,8 +111,8 @@ export async function elenco(req: Request, res: Response) {
 // GET /api/libri/statistiche
 
 // conto quanti libri ci sono per stato e la media dei voti dell'utente
-export async function statistiche(req: Request, res: Response) {
-    const userId = idUtente(req);
+export async function getStatistics(req: Request, res: Response) {
+    const userId = getUserId(req);
 
     const [perStato, voti] = await Promise.all([
         Contenuto.aggregate([{ $match: { user: userId } }, { $group: { _id: "$stato", totale: { $sum: 1 } } }]),
@@ -123,11 +123,11 @@ export async function statistiche(req: Request, res: Response) {
     ]);
 
     // trasformo [{ _id: "letto", totale: 3 }] in { letto: 3 }
-    const inOggetto = (righe: any[]) => Object.fromEntries(righe.map((r) => [r._id, r.totale]));
+    const toObjectMap = (rows: any[]) => Object.fromEntries(rows.map((row) => [row._id, row.totale]));
 
     return ok(res, {
         totale: perStato.reduce((somma, r) => somma + r.totale, 0),
-        perStato: inOggetto(perStato),
+        perStato: toObjectMap(perStato),
         voti: {
             numero: voti[0]?.numero ?? 0,
             media: voti[0] ? Math.round(voti[0].media * 10) / 10 : null,
@@ -138,9 +138,9 @@ export async function statistiche(req: Request, res: Response) {
 
 // GET /api/libri/:id            (?completo=true per i dati completi dall'API)
 
-export async function dettaglio(req: Request, res: Response) {
-    const userId = idUtente(req);
-    const contenuto = await trovaMio(Contenuto, req.params.id, userId, "Libro");
+export async function getDetails(req: Request, res: Response) {
+    const userId = getUserId(req);
+    const contenuto = await findOwnedDocument(Contenuto, req.params.id, userId, "Libro");
 
     // prendo anche la valutazione dell'utente, se c'è
     const valutazione = await Valutazione.findOne({ user: userId, contenuto: contenuto._id }).select("voto updatedAt");
@@ -148,7 +148,7 @@ export async function dettaglio(req: Request, res: Response) {
     const risposta: Record<string, unknown> = { ...contenuto.toObject(), valutazione };
 
     if (req.query.completo === "true") {
-        const api = await catalogo.dettaglio(contenuto.idEsterno, contenuto.tipo);
+        const api = await catalogo.getDetails(contenuto.idEsterno, contenuto.tipo);
         risposta.dettagli = api.dettagli;
     }
 
@@ -159,13 +159,13 @@ export async function dettaglio(req: Request, res: Response) {
 // PATCH /api/libri/:id          body: { note?, pagine? }
 
 // aggiorno solo i campi che l'utente può cambiare
-export async function aggiorna(req: Request, res: Response) {
+export async function update(req: Request, res: Response) {
     const body = req.body ?? {};
     const modifiche: Record<string, unknown> = {};
 
     if (body.note !== undefined) modifiche.note = String(body.note);
     if (body.pagine !== undefined) {
-        const pagine = numeroTra(body.pagine, 1, 100000, "pagine");
+        const pagine = numberInRange(body.pagine, 1, 100000, "pagine");
         if (!Number.isInteger(pagine)) throw new AppError('"pagine" deve essere un numero intero', 400);
         modifiche.pagine = pagine;
     }
@@ -176,7 +176,7 @@ export async function aggiorna(req: Request, res: Response) {
 
     // ritorno il documento già aggiornato
     const contenuto = await Contenuto.findOneAndUpdate(
-        { _id: req.params.id, user: idUtente(req) },
+        { _id: req.params.id, user: getUserId(req) },
         modifiche,
         { returnDocument: "after", runValidators: true }
     );
@@ -189,11 +189,11 @@ export async function aggiorna(req: Request, res: Response) {
 // PATCH /api/libri/:id/stato    body: { stato }
 
 // aggiorno lo stato del libro e azzero o porto a fine pagina se serve
-export async function aggiornaStato(req: Request, res: Response) {
-    campiObbligatori(req.body, ["stato"]);
-    const stato = valoreAmmesso(req.body.stato, STATI, "stato");
+export async function updateStatus(req: Request, res: Response) {
+    requireFields(req.body, ["stato"]);
+    const stato = allowedValue(req.body.stato, STATI, "stato");
 
-    const contenuto = await trovaMio(Contenuto, req.params.id, idUtente(req), "Libro");
+    const contenuto = await findOwnedDocument(Contenuto, req.params.id, getUserId(req), "Libro");
 
     contenuto.stato = stato;
     if (stato === "da_leggere") contenuto.paginaCorrente = 0;
@@ -208,9 +208,9 @@ export async function aggiornaStato(req: Request, res: Response) {
 
 // Aggiorna la pagina a cui è arrivato l'utente e restituisce la percentuale.
 // Si può fare solo per i libri "in lettura".
-export async function aggiornaProgresso(req: Request, res: Response) {
-    campiObbligatori(req.body, ["paginaCorrente"]);
-    const contenuto = await trovaMio(Contenuto, req.params.id, idUtente(req), "Libro");
+export async function updateProgress(req: Request, res: Response) {
+    requireFields(req.body, ["paginaCorrente"]);
+    const contenuto = await findOwnedDocument(Contenuto, req.params.id, getUserId(req), "Libro");
 
     if (contenuto.stato !== "in_lettura") {
         throw new AppError('Puoi aggiornare la pagina corrente solo dei libri "in_lettura"', 400);
@@ -218,7 +218,7 @@ export async function aggiornaProgresso(req: Request, res: Response) {
 
     // la pagina non può superare il totale, se lo sappiamo
     const massimo = contenuto.pagine ?? 100000;
-    const paginaCorrente = numeroTra(req.body.paginaCorrente, 0, massimo, "paginaCorrente");
+    const paginaCorrente = numberInRange(req.body.paginaCorrente, 0, massimo, "paginaCorrente");
     if (!Number.isInteger(paginaCorrente)) throw new AppError('"paginaCorrente" deve essere un numero intero', 400);
 
     contenuto.paginaCorrente = paginaCorrente;
@@ -237,8 +237,8 @@ export async function aggiornaProgresso(req: Request, res: Response) {
 // DELETE /api/libri/:id
 
 // tolgo il libro e anche commenti e valutazioni collegate
-export async function elimina(req: Request, res: Response) {
-    const userId = idUtente(req);
+export async function deleteContent(req: Request, res: Response) {
+    const userId = getUserId(req);
     const contenuto = await Contenuto.findOneAndDelete({ _id: req.params.id, user: userId });
     if (!contenuto) throw new AppError("Libro non trovato", 404);
 

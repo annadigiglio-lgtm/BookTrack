@@ -15,10 +15,10 @@
 
 
 import { env } from "../config/env.config";
-import type { TipoContenuto } from "../config/progetto.config";
-import type { ContenutoEsterno, DettaglioEsterno, RisultatoRicerca, ServizioCatalogo } from "../types/catalogo";
+import type { TipoContenuto } from "../config/project.config";
+import type { ContenutoEsterno, DettaglioEsterno, RisultatoRicerca, ServizioCatalogo } from "../types/catalog";
 import { AppError } from "../utils/AppError";
-import { chiamaApi, costruisciUrl } from "./http";
+import { callApi, buildUrl } from "./http";
 
 const FONTE = "openlibrary";
 const NOME = "Open Library";
@@ -38,34 +38,34 @@ const PARAMETRO_CAMPO: Record<string, string> = {
 const HEADERS = { "User-Agent": "BookTrack (progetto scolastico ITS)" };
 
 function getOpenLibrary(percorso: string, parametri: Record<string, unknown> = {}) {
-    const url = costruisciUrl(env.openLibrary.baseUrl, percorso, parametri);
-    return chiamaApi(url, NOME, HEADERS);
+    const url = buildUrl(env.openLibrary.baseUrl, percorso, parametri);
+    return callApi(url, NOME, HEADERS);
 }
 
 // "/works/OL45804W" -> "OL45804W"
-function pulisciId(key: string): string {
+function cleanId(key: string): string {
     return key.replace("/works/", "");
 }
 
-function urlCopertina(coverId: number | undefined): string | null {
+function coverUrl(coverId: number | undefined): string | null {
     return coverId ? `${env.openLibrary.coversUrl}/b/id/${coverId}-M.jpg` : null;
 }
 
 // La descrizione di un "work" può essere una stringa oppure { type, value }
-function leggiDescrizione(descrizione: any): string {
+function readDescription(descrizione: any): string {
     if (!descrizione) return "";
     return typeof descrizione === "string" ? descrizione : String(descrizione.value ?? "");
 }
 
-// Traduce un risultato di Open Library nel nostro formato (types/catalogo.ts)
-function normalizza(doc: any, tipo: TipoContenuto): ContenutoEsterno {
+// Traduce un risultato di Open Library nel nostro formato (types/catalog.ts)
+function normalize(doc: any, tipo: TipoContenuto): ContenutoEsterno {
     return {
-        idEsterno: pulisciId(String(doc.key)),
+        idEsterno: cleanId(String(doc.key)),
         fonte: FONTE,
         tipo,
         titolo: doc.title ?? "(senza titolo)",
         descrizione: "", // la ricerca non la restituisce: c'è solo nel dettaglio
-        immagine: urlCopertina(doc.cover_i),
+        immagine: coverUrl(doc.cover_i),
         anno: doc.first_publish_year ?? null,
         votoMedio: doc.ratings_average ? Math.round(doc.ratings_average * 10) / 10 : null,
         extra: {
@@ -77,7 +77,7 @@ function normalizza(doc: any, tipo: TipoContenuto): ContenutoEsterno {
     };
 }
 
-async function cerca(query: string, tipo: TipoContenuto, pagina = 1, opzioni: Record<string, string> = {}): Promise<RisultatoRicerca> {
+async function search(query: string, tipo: TipoContenuto, pagina = 1, opzioni: Record<string, string> = {}): Promise<RisultatoRicerca> {
     // Se l'utente sceglie il campo (titolo/autore/isbn) usiamo quel parametro,
     // altrimenti una ricerca generica con "q"
     const parametroCampo = PARAMETRO_CAMPO[opzioni.campo ?? ""];
@@ -93,11 +93,11 @@ async function cerca(query: string, tipo: TipoContenuto, pagina = 1, opzioni: Re
         pagina,
         totalePagine: Math.ceil(totale / RISULTATI_PER_PAGINA),
         totaleRisultati: totale,
-        risultati: (data.docs ?? []).map((doc: any) => normalizza(doc, tipo)),
+        risultati: (data.docs ?? []).map((doc: any) => normalize(doc, tipo)),
     };
 }
 
-async function dettaglio(idEsterno: string, tipo: TipoContenuto): Promise<DettaglioEsterno> {
+async function getDetails(idEsterno: string, tipo: TipoContenuto): Promise<DettaglioEsterno> {
     // Gli id di Open Library sono del tipo OL45804W: controlliamo il formato
     // (così evitiamo di chiamare l'API con id inventati)
     if (!/^OL\d+W$/.test(idEsterno)) {
@@ -111,8 +111,8 @@ async function dettaglio(idEsterno: string, tipo: TipoContenuto): Promise<Dettag
     ]);
 
     const doc = ricerca.docs?.[0] ?? { key: idEsterno, title: work.title };
-    const libro = normalizza({ ...doc, title: work.title ?? doc.title }, tipo);
-    libro.descrizione = leggiDescrizione(work.description);
+    const libro = normalize({ ...doc, title: work.title ?? doc.title }, tipo);
+    libro.descrizione = readDescription(work.description);
 
     return {
         ...libro,
@@ -130,4 +130,4 @@ async function dettaglio(idEsterno: string, tipo: TipoContenuto): Promise<Dettag
     };
 }
 
-export const openLibraryService: ServizioCatalogo = { fonte: FONTE, cerca, dettaglio };
+export const openLibraryService: ServizioCatalogo = { fonte: FONTE, search, getDetails };

@@ -3,16 +3,16 @@
 
 // due funzioni che mi servono per chiamare API esterne
 //
-// 1. costruisciUrl
+// 1. buildUrl
 //   preparo l'URL con i parametri giusti
 //
-// 2. chiamaApi
+// 2. callApi
 //   faccio la fetch e trasformo gli errori in quelli del nostro backend
 
 
 import { AppError } from "../utils/AppError";
 
-export function costruisciUrl(base: string, percorso: string, parametri: Record<string, unknown> = {}): string {
+export function buildUrl(base: string, percorso: string, parametri: Record<string, unknown> = {}): string {
     // metto insieme base e percorso senza fare casino con gli slash
     const url = new URL(base.replace(/\/+$/, "") + "/" + percorso.replace(/^\/+/, ""));
     for (const [chiave, valore] of Object.entries(parametri)) {
@@ -23,7 +23,7 @@ export function costruisciUrl(base: string, percorso: string, parametri: Record<
     return url.toString();
 }
 
-export async function chiamaApi(url: string, nomeServizio: string, headers: Record<string, string> = {}): Promise<any> {
+export async function callApi(url: string, nomeServizio: string, headers: Record<string, string> = {}): Promise<any> {
     let risposta: Response;
     try {
         risposta = await fetch(url, {

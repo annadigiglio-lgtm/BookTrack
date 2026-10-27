@@ -1,5 +1,5 @@
 
-// services/catalogo.service.ts  –  l'unico service usato dai controller
+// services/catalog.service.ts  –  l'unico service usato dai controller
 
 // "Smistatore": in base al TIPO sceglie il service dell'API giusta.
 // In BookTrack c'è un solo tipo ("book") collegato a Open Library.
@@ -8,8 +8,8 @@
 // i controller non si toccano.
 
 
-import type { TipoContenuto } from "../config/progetto.config";
-import type { ServizioCatalogo } from "../types/catalogo";
+import type { TipoContenuto } from "../config/project.config";
+import type { ServizioCatalogo } from "../types/catalog";
 import { AppError } from "../utils/AppError";
 import { openLibraryService } from "./openLibrary.service";
 
@@ -17,7 +17,7 @@ const SERVIZI: Record<TipoContenuto, ServizioCatalogo> = {
     book: openLibraryService,
 };
 
-function servizioPer(tipo: TipoContenuto): ServizioCatalogo {
+function serviceForType(tipo: TipoContenuto): ServizioCatalogo {
     const servizio = SERVIZI[tipo];
     if (!servizio) {
         throw new AppError(`Nessuna API configurata per il tipo "${tipo}"`, 500);
@@ -25,10 +25,10 @@ function servizioPer(tipo: TipoContenuto): ServizioCatalogo {
     return servizio;
 }
 
-export function cerca(query: string, tipo: TipoContenuto, pagina = 1, opzioni: Record<string, string> = {}) {
-    return servizioPer(tipo).cerca(query, tipo, pagina, opzioni);
+export function search(query: string, tipo: TipoContenuto, pagina = 1, opzioni: Record<string, string> = {}) {
+    return serviceForType(tipo).search(query, tipo, pagina, opzioni);
 }
 
-export function dettaglio(idEsterno: string, tipo: TipoContenuto) {
-    return servizioPer(tipo).dettaglio(idEsterno, tipo);
+export function getDetails(idEsterno: string, tipo: TipoContenuto) {
+    return serviceForType(tipo).getDetails(idEsterno, tipo);
 }

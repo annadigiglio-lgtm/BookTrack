@@ -1,5 +1,5 @@
 
-// config/progetto.config.ts
+// config/project.config.ts
 // regole del progetto
 
 // 1. tipi di contenuto
