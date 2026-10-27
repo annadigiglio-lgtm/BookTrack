@@ -1,6 +1,6 @@
 
 // config/env.config.ts
-// qui metto i valori del .env
+// valori del .env
 
 
 // prendo un valore obbligatorio e blocco il server se manca
