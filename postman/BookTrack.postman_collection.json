@@ -1,0 +1,1811 @@
+{
+  "info": {
+    "name": "BookTrack",
+    "description": "Tutte le rotte di BookTrack in ordine di flusso. Login salva il token da solo; salvataggio, scaffali e recensioni salvano i loro id.\nEseguite le cartelle dall'alto verso il basso (o 'Run collection').\nPrima di esportare/committare: svuotate la variabile token.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000/api"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "email",
+      "value": "prova@test.it"
+    },
+    {
+      "key": "password",
+      "value": "password123"
+    },
+    {
+      "key": "tipo",
+      "value": "book"
+    },
+    {
+      "key": "query",
+      "value": "dune"
+    },
+    {
+      "key": "idEsterno",
+      "value": ""
+    },
+    {
+      "key": "contenutoId",
+      "value": ""
+    },
+    {
+      "key": "listaId",
+      "value": ""
+    },
+    {
+      "key": "commentoId",
+      "value": ""
+    },
+    {
+      "key": "listaId2",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Health",
+      "item": [
+        {
+          "name": "Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. Utenti",
+      "item": [
+        {
+          "name": "Registrazione",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "description": "201 la prima volta, 409 se l'email esiste già (es. dopo npm run seed).",
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Utente di prova\",\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "// Salva token nelle variabili della collection",
+                  "const json = pm.response.json();",
+                  "if (json.success) { pm.collectionVariables.set(\"token\", json.data.token); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Io (me)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modifica profilo",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Nuovo nome\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "ERRORE: me senza token (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: login sbagliato (401)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"sbagliata\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: registrazione incompleta (400)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            },
+            "auth": {
+              "type": "noauth"
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"x@x.it\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Ricerca Open Library",
+      "item": [
+        {
+          "name": "Cerca",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ricerca?q={{query}}&pagina=1",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ricerca"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "{{query}}"
+                },
+                {
+                  "key": "pagina",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "// Salva idEsterno nelle variabili della collection",
+                  "const json = pm.response.json();",
+                  "if (json.success) { pm.collectionVariables.set(\"idEsterno\", json.data.risultati[0]?.idEsterno ?? ''); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Cerca per autore",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ricerca?q=tolkien&campo=autore",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ricerca"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "tolkien"
+                },
+                {
+                  "key": "campo",
+                  "value": "autore"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cerca per ISBN",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ricerca?q=9780441172719&campo=isbn",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ricerca"
+              ],
+              "query": [
+                {
+                  "key": "q",
+                  "value": "9780441172719"
+                },
+                {
+                  "key": "campo",
+                  "value": "isbn"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dettaglio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ricerca/{{tipo}}/{{idEsterno}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ricerca",
+                "{{tipo}}",
+                "{{idEsterno}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: ricerca senza q (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/ricerca?tipo={{tipo}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "ricerca"
+              ],
+              "query": [
+                {
+                  "key": "tipo",
+                  "value": "{{tipo}}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Libri salvati",
+      "item": [
+        {
+          "name": "Salva libro",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEsterno\": \"{{idEsterno}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "// Salva contenutoId nelle variabili della collection",
+                  "const json = pm.response.json();",
+                  "if (json.success) { pm.collectionVariables.set(\"contenutoId\", json.data._id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: salva di nuovo (409)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"idEsterno\": \"{{idEsterno}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Elenco",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri?ordina=recenti&pagina=1&limite=20",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri"
+              ],
+              "query": [
+                {
+                  "key": "ordina",
+                  "value": "recenti"
+                },
+                {
+                  "key": "pagina",
+                  "value": "1"
+                },
+                {
+                  "key": "limite",
+                  "value": "20"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Elenco filtrato per stato",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri?stato=da_leggere",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri"
+              ],
+              "query": [
+                {
+                  "key": "stato",
+                  "value": "da_leggere"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Dettaglio",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dettaglio completo (con dati Open Library)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}?completo=true",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}"
+              ],
+              "query": [
+                {
+                  "key": "completo",
+                  "value": "true"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Segna come \"in lettura\"",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/stato",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "stato"
+              ]
+            },
+            "description": "Stati ammessi: da_leggere, in_lettura, letto (config/progetto.config.ts).",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stato\": \"in_lettura\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aggiorna pagina corrente (con percentuale)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/progresso",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "progresso"
+              ]
+            },
+            "description": "Solo per i libri \"in_lettura\". Risponde con paginaCorrente, pagine e percentuale.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paginaCorrente\": 120\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: pagina corrente non valida (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/progresso",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "progresso"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paginaCorrente\": \"abc\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Segna come \"letto\"",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/stato",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "stato"
+              ]
+            },
+            "description": "Con \"letto\" la pagina corrente diventa l'ultima pagina (100%) se il numero di pagine è noto.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stato\": \"letto\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modifica (note, pagine)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"note\": \"Consigliato da un amico\",\n  \"pagine\": 300\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Statistiche",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/statistiche",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "statistiche"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: stato non valido (400)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/stato",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "stato"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"stato\": \"finito\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: id non valido (400)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/abc",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "abc"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: id inesistente (404)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/000000000000000000000000",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "000000000000000000000000"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. Scaffali",
+      "item": [
+        {
+          "name": "Crea scaffale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Fantasy {{$randomInt}}\",\n  \"descrizione\": \"I miei fantasy preferiti\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "// Salva listaId nelle variabili della collection",
+                  "const json = pm.response.json();",
+                  "if (json.success) { pm.collectionVariables.set(\"listaId\", json.data._id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Elenco scaffali",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aggiungi libro allo scaffale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali/{{listaId}}/libri",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali",
+                "{{listaId}}",
+                "libri"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"contenutoId\": \"{{contenutoId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Dettaglio scaffale",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali/{{listaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali",
+                "{{listaId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Crea secondo scaffale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"In lettura {{$randomInt}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const json = pm.response.json();",
+                  "if (json.success) { pm.collectionVariables.set(\"listaId2\", json.data._id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Sposta libro nel secondo scaffale",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali/{{listaId}}/libri/{{contenutoId}}/sposta",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali",
+                "{{listaId}}",
+                "libri",
+                "{{contenutoId}}",
+                "sposta"
+              ]
+            },
+            "description": "Toglie il libro dallo scaffale di partenza e lo mette in quello di arrivo.",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"aScaffaleId\": \"{{listaId2}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Rinomina scaffale",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali/{{listaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali",
+                "{{listaId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nome\": \"Preferiti rinominata {{$randomInt}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          }
+        },
+        {
+          "name": "Rimuovi libro dallo scaffale",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali/{{listaId2}}/libri/{{contenutoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali",
+                "{{listaId2}}",
+                "libri",
+                "{{contenutoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. Valutazioni e recensioni",
+      "item": [
+        {
+          "name": "Imposta voto",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/valutazione",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "valutazione"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voto\": 4\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Leggi voto",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/valutazione",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "valutazione"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: voto fuori range 1-5 (400)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/valutazione",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "valutazione"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"voto\": 6\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Aggiungi recensione",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/commenti",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "commenti"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testo\": \"Bellissimo, lo consiglio!\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "// Salva commentoId nelle variabili della collection",
+                  "const json = pm.response.json();",
+                  "if (json.success) { pm.collectionVariables.set(\"commentoId\", json.data._id); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Elenco recensioni",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/commenti",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "commenti"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Modifica recensione",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/commenti/{{commentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "commenti",
+                "{{commentoId}}"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"testo\": \"Rivisto: ancora più bello\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Elimina recensione",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/commenti/{{commentoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "commenti",
+                "{{commentoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Elimina voto",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}/valutazione",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}",
+                "valutazione"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "6. Pulizia e logout",
+      "item": [
+        {
+          "name": "Elimina scaffale",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali/{{listaId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali",
+                "{{listaId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Elimina secondo scaffale",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/scaffali/{{listaId2}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "scaffali",
+                "{{listaId2}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Elimina libro",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/libri/{{contenutoId}}",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "libri",
+                "{{contenutoId}}"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "logout"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ERRORE: token dopo il logout (401)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 401\", () => pm.response.to.have.status(401));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
