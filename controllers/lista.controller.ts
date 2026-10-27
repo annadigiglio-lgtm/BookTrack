@@ -1,21 +1,8 @@
 // ============================================================
-// controllers/lista.controller.ts  –  Scaffali personali ("liste")
+// controllers/lista.controller.ts
 // ============================================================
-// Uno scaffale è una lista con un nome libero: "Da leggere", "In lettura",
-// "Letti", "Fantasy", "Regali"... e contiene libri SALVATI dall'utente.
-//
-// | Funzione           | Rotta                                              | Body                  |
-// |--------------------|----------------------------------------------------|-----------------------|
-// | crea               | POST   /api/scaffali                               | nome, descrizione?    |
-// | elenco             | GET    /api/scaffali                               |                       |
-// | dettaglio          | GET    /api/scaffali/:id                           |                       |
-// | aggiorna           | PATCH  /api/scaffali/:id                           | nome?, descrizione?   |
-// | elimina            | DELETE /api/scaffali/:id                           |                       |
-// | aggiungiContenuto  | POST   /api/scaffali/:id/libri                     | contenutoId           |
-// | rimuoviContenuto   | DELETE /api/scaffali/:id/libri/:contenutoId        |                       |
-// | spostaContenuto    | POST   /api/scaffali/:id/libri/:contenutoId/sposta | aScaffaleId           |
-//
-// Eliminare uno scaffale NON elimina i libri: restano salvati.
+// qui gestisco gli scaffali personali dell'utente
+// togliere uno scaffale non cancella i libri salvati
 // ============================================================
 
 import type { Request, Response } from "express";
@@ -46,7 +33,7 @@ export async function crea(req: Request, res: Response) {
 // ------------------------------------------------------------
 // GET /api/scaffali
 // ------------------------------------------------------------
-// Elenco "leggero": per ogni scaffale il numero di libri, non i libri interi.
+// ritorno i scaffali con il numero di libri dentro
 export async function elenco(req: Request, res: Response) {
     const liste = await Lista.find({ user: idUtente(req) }).sort({ createdAt: 1 }).lean();
     const risultato = liste.map(({ contenuti, ...lista }) => ({ ...lista, numeroContenuti: contenuti.length }));
@@ -56,7 +43,7 @@ export async function elenco(req: Request, res: Response) {
 // ------------------------------------------------------------
 // GET /api/scaffali/:id
 // ------------------------------------------------------------
-// populate: sostituisce gli _id dentro "contenuti" con i documenti completi
+// con populate metto dentro i libri completi invece di soli id
 export async function dettaglio(req: Request, res: Response) {
     const lista = await Lista.findOne({ _id: req.params.id, user: idUtente(req) }).populate("contenuti");
     if (!lista) throw new AppError("Scaffale non trovato", 404);
@@ -78,7 +65,7 @@ export async function aggiorna(req: Request, res: Response) {
     if (nome !== undefined) {
         const nuovoNome = String(nome).trim();
         if (!nuovoNome) throw new AppError("Il nome non può essere vuoto", 400);
-        // Un ALTRO scaffale dello stesso utente con quel nome? ($ne = "diverso da")
+        // controllo che non ci sia già un altro scaffale con lo stesso nome
         if (await Lista.exists({ user: userId, nome: nuovoNome, _id: { $ne: lista._id } })) {
             throw new AppError(`Hai già uno scaffale chiamato "${nuovoNome}"`, 409);
         }
@@ -102,18 +89,17 @@ export async function elimina(req: Request, res: Response) {
 // ------------------------------------------------------------
 // POST /api/scaffali/:id/libri     body: { contenutoId }
 // ------------------------------------------------------------
-// contenutoId = l'_id del libro SALVATO (non l'id di Open Library!).
-// Flusso: prima POST /api/libri (salva), poi questa rotta.
+// qui aggiungo un libro già salvato a uno scaffale
 export async function aggiungiContenuto(req: Request, res: Response) {
     campiObbligatori(req.body, ["contenutoId"]);
     const { contenutoId } = req.body;
     if (!isObjectId(contenutoId)) throw new AppError("contenutoId non valido", 400);
     const userId = idUtente(req);
 
-    // Il libro deve essere DELL'UTENTE (non si aggiungono libri altrui)
+    // il libro deve essere dell'utente
     await trovaMio(Contenuto, contenutoId, userId, "Libro");
 
-    // $addToSet aggiunge solo se non c'è già (niente doppioni)
+    // addToSet evita duplicati
     const lista = await Lista.findOneAndUpdate(
         { _id: req.params.id, user: userId },
         { $addToSet: { contenuti: contenutoId } },
@@ -127,7 +113,7 @@ export async function aggiungiContenuto(req: Request, res: Response) {
 // ------------------------------------------------------------
 // DELETE /api/scaffali/:id/libri/:contenutoId
 // ------------------------------------------------------------
-// $pull toglie l'elemento dall'array (il libro resta salvato)
+// tolgo il libro dallo scaffale ma non lo cancello dal salvataggio
 export async function rimuoviContenuto(req: Request, res: Response) {
     const lista = await Lista.findOneAndUpdate(
         { _id: req.params.id, user: idUtente(req) },
@@ -142,9 +128,7 @@ export async function rimuoviContenuto(req: Request, res: Response) {
 // ------------------------------------------------------------
 // POST /api/scaffali/:id/libri/:contenutoId/sposta     body: { aScaffaleId }
 // ------------------------------------------------------------
-// Sposta un libro dallo scaffale :id a un altro scaffale (aScaffaleId):
-//   1. lo toglie dallo scaffale di partenza ($pull)
-//   2. lo aggiunge a quello di arrivo ($addToSet)
+// sposto un libro da uno scaffale a un altro
 export async function spostaContenuto(req: Request, res: Response) {
     campiObbligatori(req.body, ["aScaffaleId"]);
     const { aScaffaleId } = req.body;
@@ -152,12 +136,12 @@ export async function spostaContenuto(req: Request, res: Response) {
     if (aScaffaleId === req.params.id) throw new AppError("Il libro è già in questo scaffale", 400);
     const userId = idUtente(req);
 
-    // Tutto deve essere DELL'UTENTE: libro, scaffale di partenza e scaffale di arrivo
+    // devo controllare che libro e scaffali appartengano all'utente
     await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
     const partenza = await trovaMio(Lista, req.params.id, userId, "Scaffale di partenza");
     await trovaMio(Lista, aScaffaleId, userId, "Scaffale di arrivo");
 
-    // Il libro deve essere davvero nello scaffale di partenza
+    // controllo che il libro sia davvero dentro lo scaffale di partenza
     if (!partenza.contenuti.some((id: any) => String(id) === req.params.contenutoId)) {
         throw new AppError("Il libro non è nello scaffale di partenza", 400);
     }

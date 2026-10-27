@@ -1,27 +1,19 @@
 // ============================================================
 // services/http.ts
 // ============================================================
-// Due funzioni che servono a OGNI integrazione con un'API esterna:
+// due funzioni che mi servono per chiamare API esterne
 //
-// 1. costruisciUrl(base, percorso, parametri)
-//    Crea l'URL con la query string, codificando i caratteri speciali
-//    (spazi, accenti, &...). Evita errori tipo "?query=il signore degli anelli".
-//    I parametri vuoti/undefined vengono saltati.
+// 1. costruisciUrl
+//   preparo l'URL con i parametri giusti
 //
-// 2. chiamaApi(url, nomeServizio, headers)
-//    Fa la fetch (già inclusa in Bun, non serve axios) e traduce gli errori
-//    dell'API esterna in AppError con lo status giusto per il NOSTRO client:
-//      404 dall'API          -> 404 "Contenuto non trovato"
-//      401/403 dall'API      -> 502 (è un problema NOSTRO di chiave, non del client)
-//      429 dall'API          -> 503 troppe richieste
-//      altri errori          -> 502 Bad Gateway
-//      nessuna risposta      -> 504 timeout / 502
+// 2. chiamaApi
+//   faccio la fetch e trasformo gli errori in quelli del nostro backend
 // ============================================================
 
 import { AppError } from "../utils/AppError";
 
 export function costruisciUrl(base: string, percorso: string, parametri: Record<string, unknown> = {}): string {
-    // Evita doppi o mancanti "/" tra base e percorso
+    // metto insieme base e percorso senza fare casino con gli slash
     const url = new URL(base.replace(/\/+$/, "") + "/" + percorso.replace(/^\/+/, ""));
     for (const [chiave, valore] of Object.entries(parametri)) {
         if (valore !== undefined && valore !== null && valore !== "") {
@@ -49,7 +41,7 @@ export async function chiamaApi(url: string, nomeServizio: string, headers: Reco
         return risposta.json();
     }
 
-    // Utile in console per capire cosa ha risposto l'API (NON lo mandiamo al client)
+    // qui vedo cosa ha risposto l'API, ma non lo mando al client
     console.warn(`⚠️  ${nomeServizio} ha risposto ${risposta.status} per ${url.replace(/(api_key|key)=[^&]+/g, "$1=***")}`);
 
     if (risposta.status === 404) throw new AppError("Contenuto non trovato", 404);

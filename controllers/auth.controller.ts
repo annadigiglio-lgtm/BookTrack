@@ -1,21 +1,8 @@
 // ============================================================
 // controllers/auth.controller.ts
 // ============================================================
-// Un controller è una funzione (req, res) che: legge la richiesta,
-// valida i dati, usa modelli/service e manda la risposta.
-// Gli URL NON stanno qui ma in routes/auth.routes.ts.
-//
-// Express 5: niente try/catch. Se qualcosa lancia un errore (anche un
-// AppError nostro), Express lo passa da solo a middleware/error.middleware.ts.
-//
-// | Funzione       | Rotta                    | Protetta |
-// |----------------|--------------------------|----------|
-// | register       | POST   /api/auth/register| no       |
-// | login          | POST   /api/auth/login   | no       |
-// | logout         | POST   /api/auth/logout  | sì       |
-// | me             | GET    /api/auth/me      | sì       |
-// | aggiornaMe     | PATCH  /api/auth/me      | sì       |
-// | eliminaMe      | DELETE /api/auth/me      | sì       |
+// qui gestisco registrazione, login e profilo utente
+// le rotte stanno in routes/auth.routes.ts
 // ============================================================
 
 import type { Request, Response } from "express";
@@ -33,7 +20,7 @@ import { ok } from "../utils/risposta";
 import { idUtente } from "../utils/utente";
 import { campiObbligatori, emailValida } from "../utils/validazione";
 
-// Crea il JWT. Il payload { id } è quello che legge config/passport.config.ts.
+// creo il token con l'id dell'utente
 function creaToken(userId: unknown): string {
     return jwt.sign({ id: String(userId) }, env.jwtSecret, {
         expiresIn: env.jwtExpiresIn as SignOptions["expiresIn"],
@@ -55,22 +42,22 @@ export async function register(req: Request, res: Response) {
         throw new AppError(`La password deve avere almeno ${PASSWORD_MIN} caratteri`, 400);
     }
 
-    // Controllo esplicito per un messaggio chiaro (l'indice unique farebbe comunque 409)
+    // controllo se l'email è già usata
     const esiste = await User.exists({ email: String(email).toLowerCase() });
     if (esiste) {
         throw new AppError("Email già registrata", 409);
     }
 
-    // MAI salvare la password in chiaro: solo l'hash. 10 = "costo" (giri di cifratura)
+    // salvo solo l'hash, non la password vera
     const hash = await bcrypt.hash(String(password), 10);
     const utente = await User.create({ nome, email, password: hash });
 
-    // Scaffali creati in automatico: "Da leggere", "In lettura", "Letti" (vedi LISTE_PREDEFINITE)
+    // creo subito gli scaffali base
     if (LISTE_PREDEFINITE.length > 0) {
         await Lista.insertMany(LISTE_PREDEFINITE.map((nomeLista) => ({ user: utente._id, nome: nomeLista })));
     }
 
-    // 201 Created. password e token vengono tolti dal toJSON del modello.
+    // rispondo con 201 anche se il modello toJSON toglie password e token
     return ok(res, utente, 201);
 }
 
@@ -81,11 +68,10 @@ export async function login(req: Request, res: Response) {
     campiObbligatori(req.body, ["email", "password"]);
     const { email, password } = req.body;
 
-    // "+password": il campo ha select:false, va chiesto esplicitamente
+    // il campo password è nascosto di default, quindi lo chiedo esplicitamente
     const utente = await User.findOne({ email: String(email).toLowerCase() }).select("+password");
 
-    // STESSO messaggio se sbaglia email o password: non diciamo quale dei due
-    // (altrimenti si potrebbe scoprire quali email sono registrate)
+    // faccio lo stesso errore per email o password sbagliate
     const passwordGiusta = utente ? await bcrypt.compare(String(password), utente.password) : false;
     if (!utente || !passwordGiusta) {
         throw new AppError("Credenziali non valide", 401);
@@ -93,7 +79,7 @@ export async function login(req: Request, res: Response) {
 
     const token = creaToken(utente._id);
 
-    // Salviamo il token: serve per il logout (vedi passport.config.ts)
+    // salvo il token per fare il logout
     utente.token = token;
     await utente.save();
 
@@ -108,9 +94,7 @@ export async function login(req: Request, res: Response) {
 // ------------------------------------------------------------
 // POST /api/auth/logout        (protetta)
 // ------------------------------------------------------------
-// Il JWT di per sé non si può "cancellare" (è valido fino alla scadenza).
-// Per questo salviamo il token nello User: mettendolo a null, Passport
-// rifiuta il vecchio token -> logout vero lato server.
+// il JWT non si cancella da solo, quindi lo salvo a null nel database
 export async function logout(req: Request, res: Response) {
     await User.updateOne({ _id: idUtente(req) }, { token: null });
     return ok(res, { messaggio: "Logout effettuato" });
@@ -119,7 +103,7 @@ export async function logout(req: Request, res: Response) {
 // ------------------------------------------------------------
 // GET /api/auth/me             (protetta)
 // ------------------------------------------------------------
-// req.user lo ha messo Passport. Il toJSON del modello toglie token e password.
+// req.user arriva da Passport
 export async function me(req: Request, res: Response) {
     return ok(res, req.user);
 }
@@ -137,8 +121,7 @@ export async function aggiornaMe(req: Request, res: Response) {
         utente.nome = String(nome).trim();
     }
 
-    // Cambio password: serve quella attuale (se qualcuno ruba il token
-    // non può cambiare la password senza conoscerla)
+    // se cambio password, controllo prima quella attuale
     if (nuovaPassword !== undefined) {
         if (!passwordAttuale || !(await bcrypt.compare(String(passwordAttuale), utente.password))) {
             throw new AppError("Password attuale errata", 401);
@@ -156,7 +139,7 @@ export async function aggiornaMe(req: Request, res: Response) {
 // ------------------------------------------------------------
 // DELETE /api/auth/me
 // ------------------------------------------------------------
-// Elimina l'account e TUTTI i suoi dati (eliminazione "a cascata").
+// cancello anche tutti i dati legati a questo utente
 export async function eliminaMe(req: Request, res: Response) {
     const userId = idUtente(req);
     await Promise.all([

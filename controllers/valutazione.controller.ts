@@ -1,16 +1,7 @@
 // ============================================================
 // controllers/valutazione.controller.ts
 // ============================================================
-// UNA valutazione (da 1 a 5) per utente per libro.
-//
-// | Funzione  | Rotta                                           | Body  |
-// |-----------|-------------------------------------------------|-------|
-// | leggi     | GET    /api/libri/:contenutoId/valutazione  |       |
-// | imposta   | PUT    /api/libri/:contenutoId/valutazione  | voto  |
-// | elimina   | DELETE /api/libri/:contenutoId/valutazione  |       |
-//
-// PUT (e non POST) perché "imposta il valore": la stessa richiesta
-// ripetuta dà sempre lo stesso risultato (crea la prima volta, poi aggiorna).
+// per ogni utente e libro c'è una sola valutazione da 1 a 5
 // ============================================================
 
 import type { Request, Response } from "express";
@@ -41,12 +32,12 @@ export async function leggi(req: Request, res: Response) {
 export async function imposta(req: Request, res: Response) {
     const userId = idUtente(req);
     const voto = numeroTra(req.body?.voto, VOTO_MIN, VOTO_MAX, "voto");
-    // Il voto è da 1 a 5 stelle: solo numeri interi
+    // il voto va da 1 a 5 e deve essere intero
     if (!Number.isInteger(voto)) throw new AppError("Il voto deve essere un numero intero", 400);
 
     await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
 
-    // upsert: se non esiste la crea, se esiste la aggiorna (una sola query)
+    // se non c'è la creo, se c'è la aggiorno
     const valutazione = await Valutazione.findOneAndUpdate(
         { user: userId, contenuto: req.params.contenutoId },
         { voto },

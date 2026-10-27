@@ -1,16 +1,8 @@
 // ============================================================
 // routes/valutazione.routes.ts
 // ============================================================
-// Montato in contenuto.routes.ts su /api/libri/:contenutoId/valutazione
-// (autentica e validaId sono già applicati dal router padre).
-//
-// | Metodo | URL | Controller |
-// |--------|-----|------------|
-// | GET    | /   | leggi      |
-// | PUT    | /   | imposta    |
-// | DELETE | /   | elimina    |
-//
-// mergeParams: true -> per leggere req.params.contenutoId del router padre.
+// qui gestisco la valutazione di un libro
+// il router padre già controlla login e id
 // ============================================================
 
 import { Router } from "express";

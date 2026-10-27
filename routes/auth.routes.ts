@@ -1,16 +1,8 @@
 // ============================================================
 // routes/auth.routes.ts
 // ============================================================
-// Montato su /api/auth (vedi routes/index.ts).
-//
-// | Metodo | URL        | Protetta | Controller  |
-// |--------|------------|----------|-------------|
-// | POST   | /register  | no       | register    |
-// | POST   | /login     | no       | login       |
-// | POST   | /logout    | sì       | logout      |
-// | GET    | /me        | sì       | me          |
-// | PATCH  | /me        | sì       | aggiornaMe  |
-// | DELETE | /me        | sì       | eliminaMe   |
+// qui ci sono le rotte di login e profilo
+// montate sotto /api/auth
 // ============================================================
 
 import { Router } from "express";
@@ -20,9 +12,7 @@ import { register, login, logout, me, aggiornaMe, eliminaMe } from "../controlle
 
 const router = Router();
 
-// Sicurezza: massimo 10 tentativi di login
-// ogni 15 minuti per IP, contro chi prova password a raffica (brute force).
-// Se durante i test vi blocca, alzate "limit" o togliete limiteLogin dalla rotta.
+// limito i tentativi di login per evitare brute force
 const limiteLogin = rateLimit({
     windowMs: 15 * 60 * 1000,
     limit: 10,
@@ -31,11 +21,11 @@ const limiteLogin = rateLimit({
     message: { success: false, error: { message: "Troppi tentativi di login, riprova tra 15 minuti", status: 429 } },
 });
 
-// Pubbliche
+// pubbliche
 router.post("/register", register);
 router.post("/login", limiteLogin, login);
 
-// Protette
+// protette
 router.post("/logout", autentica, logout);
 router.get("/me", autentica, me);
 router.patch("/me", autentica, aggiornaMe);

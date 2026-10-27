@@ -1,14 +1,13 @@
 // ============================================================
-// index.ts  –  PUNTO DI INGRESSO
+// index.ts
 // ============================================================
-// Avvio:  npm run dev   (riavvia da solo a ogni salvataggio)
-//         npm start     (avvio normale)
+// avvio del server
+// bun legge .env da solo
 //
-// Sequenza:
-//   1. Bun carica il .env da solo
-//   2. connessione a MongoDB (config/db.config.ts)
-//   3. SOLO se il DB risponde -> app.listen
-// Se il DB non risponde il processo si chiude con un messaggio chiaro.
+// ordine:
+// 1. connetto MongoDB
+// 2. se va bene, faccio partire Express
+// se il database non risponde, chiudo il processo
 // ============================================================
 
 import app from "./app";

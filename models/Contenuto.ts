@@ -1,15 +1,8 @@
 // ============================================================
-// models/Contenuto.ts  –  Libri salvati dall'utente
+// models/Contenuto.ts
 // ============================================================
-// Il "contenuto salvato" è un LIBRO preso da Open Library e salvato
-// da UN utente nei propri libri.
-//
-// REGOLA: un documento = un libro salvato da UN utente.
-// Se due utenti salvano lo stesso libro, ci sono due documenti diversi,
-// ognuno con il suo "user", il suo "stato" e il suo avanzamento.
-//
-// Salviamo solo il MINIMO per mostrare i libri senza richiamare l'API
-// (titolo, copertina, anno...). Il dettaglio completo si chiede all'API.
+// qui salvo i libri che l'utente ha aggiunto alla sua lista
+// ogni utente può avere lo stesso libro più volte, ma con profilo diverso
 // ============================================================
 
 import mongoose, { Schema } from "mongoose";

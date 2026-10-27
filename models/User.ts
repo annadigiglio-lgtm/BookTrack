@@ -1,19 +1,8 @@
 // ============================================================
 // models/User.ts
 // ============================================================
-// L'utente registrato.
-//
-// Campi:
-// - nome      obbligatorio
-// - email     obbligatoria, unica, salvata in minuscolo
-// - password  SOLO l'hash (bcrypt). "select: false" = non esce mai nelle
-//             query, a meno di chiederla con .select("+password") (vedi login)
-// - token     il JWT attualmente valido. Serve per il LOGOUT "vero":
-//             al logout si mette a null e Passport rifiuta il vecchio token
-//             (vedi config/passport.config.ts).
-//             Conseguenza: un nuovo login invalida il token precedente
-//             (un utente = una sessione attiva). Per la verifica va benissimo.
-// - ruolo     "utente" (default) o "admin" (vedi soloRuolo in middleware/auth.middleware.ts)
+// qui salvo i dati dell'utente
+// password e token sono nascosti di default
 // ============================================================
 
 import mongoose, { Schema } from "mongoose";

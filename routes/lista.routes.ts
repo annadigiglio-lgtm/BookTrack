@@ -1,18 +1,8 @@
 // ============================================================
-// routes/lista.routes.ts  –  Scaffali personali
+// routes/lista.routes.ts
 // ============================================================
-// Montato su /api/scaffali. Tutte PROTETTE.
-//
-// | Metodo | URL                                  | Controller         |
-// |--------|--------------------------------------|--------------------|
-// | POST   | /                                    | crea               |
-// | GET    | /                                    | elenco             |
-// | GET    | /:id                                 | dettaglio          |
-// | PATCH  | /:id                                 | aggiorna           |
-// | DELETE | /:id                                 | elimina            |
-// | POST   | /:id/libri                           | aggiungiContenuto  |
-// | DELETE | /:id/libri/:contenutoId              | rimuoviContenuto   |
-// | POST   | /:id/libri/:contenutoId/sposta       | spostaContenuto    |
+// qui ci sono gli scaffali dell'utente
+// tutte le rotte sono protette
 // ============================================================
 
 import { Router } from "express";

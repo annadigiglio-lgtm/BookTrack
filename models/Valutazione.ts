@@ -1,12 +1,8 @@
 // ============================================================
 // models/Valutazione.ts
 // ============================================================
-// Il voto PERSONALE (da 1 a 5) di un utente su un suo libro salvato.
-// UNA sola valutazione per utente per libro (indice unico):
-// se l'utente vota di nuovo, la valutazione si AGGIORNA (upsert nel controller).
-//
-// ⚠️ Non confondere con il voto medio di Open Library: quello si mostra
-//    solo nel dettaglio, non si salva qui.
+// qui salvo la valutazione che l'utente dà a un suo libro
+// per ogni libro c'è solo un voto per utente
 // ============================================================
 
 import mongoose, { Schema } from "mongoose";

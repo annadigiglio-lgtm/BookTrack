@@ -1,23 +1,10 @@
 // ============================================================
-// routes/contenuto.routes.ts  –  I libri salvati dall'utente
+// routes/contenuto.routes.ts
 // ============================================================
-// Montato su /api/libri. Tutte PROTETTE.
+// qui stanno i libri salvati dall'utente
+// tutte le rotte sono protette
 //
-// | Metodo | URL                              | Controller                  |
-// |--------|----------------------------------|-----------------------------|
-// | POST   | /                                | salva                       |
-// | GET    | /                                | elenco                      |
-// | GET    | /statistiche                     | statistiche                 |
-// | GET    | /:id                             | dettaglio                   |
-// | PATCH  | /:id                             | aggiorna                    |
-// | PATCH  | /:id/stato                       | aggiornaStato               |
-// | PATCH  | /:id/progresso                   | aggiornaProgresso           |
-// | DELETE | /:id                             | elimina                     |
-// |  ...   | /:contenutoId/commenti           | -> routes/commento.routes   |
-// |  ...   | /:contenutoId/valutazione        | -> routes/valutazione.routes|
-//
-// ⚠️ ORDINE: "/statistiche" PRIMA di "/:id", altrimenti Express pensa
-//    che "statistiche" sia un id (e validaId risponde 400).
+// /statistiche va prima di /:id, altrimenti Express la legge come id
 // ============================================================
 
 import { Router } from "express";
@@ -41,7 +28,7 @@ router.patch("/:id/stato", validaId("id"), aggiornaStato);
 router.patch("/:id/progresso", validaId("id"), aggiornaProgresso);
 router.delete("/:id", validaId("id"), elimina);
 
-// Sotto-rotte: recensioni (commenti) e valutazione del libro
+// sotto-rotte per commenti e valutazione del libro
 router.use("/:contenutoId/commenti", validaId("contenutoId"), commentiDelContenuto);
 router.use("/:contenutoId/valutazione", validaId("contenutoId"), valutazioneRoutes);
 

@@ -1,32 +1,32 @@
 // ============================================================
 // app.ts
 // ============================================================
-// Configura l'app Express (NON la avvia: lo fa index.ts).
-// Separarli permette di importare l'app nei test senza accendere il server.
+// qui preparo l'app Express ma non la avvio
+// così posso importarla nei test senza accendere il server
 //
-// ⚠️ L'ORDINE degli app.use CONTA:
-//   1. express.json()        -> legge il body JSON (senza: req.body è undefined)
-//   2. passport.initialize() -> attiva Passport (strategia in config/passport.config.ts)
-//   3. log delle richieste   -> utile per capire cosa arriva
-//   4. rotte /api
-//   5. notFound              -> 404 per le rotte che non esistono
-//   6. gestoreErrori         -> SEMPRE PER ULTIMO
+// ordine importante per i middleware
+// 1. leggo il body JSON
+// 2. attivo Passport
+// 3. loggo le richieste
+// 4. metto le rotte /api
+// 5. gestisco 404
+// 6. metto il gestore errori in fondo
 // ============================================================
 
 import express from "express";
-import passport from "./config/passport.config"; // importarlo registra la strategia JWT
+import passport from "./config/passport.config"; // mi serve per registrare la strategia JWT
 import routes from "./routes";
 import { notFound, gestoreErrori } from "./middleware/error.middleware";
 
 const app = express();
 
-// 1. Body JSON (limite di dimensione per sicurezza)
+// leggo il body JSON con un limite sicuro
 app.use(express.json({ limit: "100kb" }));
 
-// 2. Passport
+// attivo Passport
 app.use(passport.initialize());
 
-// 3. Log semplice di ogni richiesta (metodo, URL, status, tempo)
+// registro un log semplice per ogni richiesta
 app.use((req, res, next) => {
     const inizio = Date.now();
     res.on("finish", () => {
@@ -35,10 +35,10 @@ app.use((req, res, next) => {
     next();
 });
 
-// 4. Rotte
+// metto le rotte
 app.use("/api", routes);
 
-// 5. e 6. Errori (sempre in fondo)
+// 404 e errori vanno sempre in fondo
 app.use(notFound);
 app.use(gestoreErrori);
 

@@ -1,19 +1,8 @@
 // ============================================================
-// controllers/contenuto.controller.ts  –  I libri salvati dall'utente
+// controllers/contenuto.controller.ts
 // ============================================================
-// Gestisce i libri SALVATI dall'utente (models/Contenuto.ts).
-// REGOLA D'ORO: ogni query filtra per user = idUtente(req).
-//
-// | Funzione        | Rotta                           | Body / Query                                  |
-// |-----------------|---------------------------------|-----------------------------------------------|
-// | salva           | POST   /api/libri               | idEsterno, stato?, listaId?                   |
-// | elenco          | GET    /api/libri               | ?stato=&q=&ordina=&pagina=&limite=            |
-// | statistiche     | GET    /api/libri/statistiche   |                                               |
-// | dettaglio       | GET    /api/libri/:id           | ?completo=true -> aggiunge i dati dell'API    |
-// | aggiorna        | PATCH  /api/libri/:id           | note?, pagine?                                |
-// | aggiornaStato   | PATCH  /api/libri/:id/stato     | stato                                         |
-// | aggiornaProgresso | PATCH /api/libri/:id/progresso | paginaCorrente                                |
-// | elimina         | DELETE /api/libri/:id           |                                               |
+// qui gestisco i libri salvati dall'utente
+// ogni query filtra sempre per user = idUtente(req)
 // ============================================================
 
 import type { Request, Response } from "express";
@@ -29,7 +18,7 @@ import { ok } from "../utils/risposta";
 import { idUtente } from "../utils/utente";
 import { campiObbligatori, isObjectId, leggiPaginazione, numeroTra, valoreAmmesso } from "../utils/validazione";
 
-// Ordinamenti ammessi per ?ordina=  (lista chiusa: il client non può ordinare per campi a caso)
+// campi ordinabili disponibili
 const ORDINAMENTI: Record<string, Record<string, 1 | -1>> = {
     recenti: { createdAt: -1 },
     vecchi: { createdAt: 1 },
@@ -37,7 +26,7 @@ const ORDINAMENTI: Record<string, Record<string, 1 | -1>> = {
     anno: { anno: -1 },
 };
 
-// Rende sicura una stringa da usare dentro una RegExp (es. "c++" non rompe la ricerca)
+// tolgo i caratteri speciali così la ricerca non si rompe
 function escapeRegex(testo: string) {
     return testo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -45,27 +34,25 @@ function escapeRegex(testo: string) {
 // ------------------------------------------------------------
 // POST /api/libri      body: { idEsterno, stato?, listaId? }
 // ------------------------------------------------------------
-// Il client manda SOLO l'id Open Library (es. "OL45804W"): titolo, copertina
-// ecc. li prendiamo noi dall'API. Così i dati salvati sono sempre corretti
-// (il client non può inventarsi un titolo) e verifichiamo che il libro esista.
+// il client manda solo l'id di Open Library e noi prendiamo i dati reali dall'API
 export async function salva(req: Request, res: Response) {
     campiObbligatori(req.body, ["idEsterno"]);
     const userId = idUtente(req);
-    // "tipo" non è obbligatorio: in BookTrack esiste solo "book"
+    // il tipo non è obbligatorio perché qui c'è solo il libro
     const tipo = valoreAmmesso(req.body.tipo ?? TIPI_CONTENUTO[0], TIPI_CONTENUTO, "tipo");
     const idEsterno = String(req.body.idEsterno).trim();
     const stato = req.body.stato !== undefined ? valoreAmmesso(req.body.stato, STATI, "stato") : STATO_DEFAULT;
 
-    // 1. Dati dall'API (se non esiste -> l'API risponde 404 -> AppError 404)
+    // 1. prendo i dati reali dall'API
     const dati = await catalogo.dettaglio(idEsterno, tipo);
 
-    // 2. Già salvato? -> 409 (messaggio chiaro; l'indice unico farebbe comunque 409)
+    // 2. controllo se questo libro è già salvato dall'utente
     const esiste = await Contenuto.exists({ user: userId, fonte: dati.fonte, tipo, idEsterno: dati.idEsterno });
     if (esiste) {
         throw new AppError("Libro già salvato", 409);
     }
 
-    // 3. Salvataggio. NON salviamo "dati.dettagli": si chiedono all'API quando servono.
+    // 3. salvo il libro senza tenere tutto il dettaglio dell'API
     const contenuto = await Contenuto.create({
         user: userId,
         fonte: dati.fonte,
@@ -80,7 +67,7 @@ export async function salva(req: Request, res: Response) {
         stato,
     });
 
-    // 4. Aggiunta diretta a uno scaffale ("salva e metti in Da leggere")
+    // 4. se arriva listaId, lo aggiungo subito a quello scaffale
     if (req.body.listaId) {
         if (!isObjectId(req.body.listaId)) throw new AppError("listaId non valido", 400);
         await trovaMio(Lista, req.body.listaId, userId, "Scaffale");
@@ -93,23 +80,20 @@ export async function salva(req: Request, res: Response) {
 // ------------------------------------------------------------
 // GET /api/libri?stato=&q=&ordina=&pagina=&limite=
 // ------------------------------------------------------------
-// Tutti i filtri sono facoltativi. Esempi:
-//   /api/libri?stato=in_lettura
-//   /api/libri?ordina=titolo
-//   /api/libri?q=harry&pagina=2&limite=5
+// i filtri sono tutti opzionali
 export async function elenco(req: Request, res: Response) {
     const filtro: Record<string, unknown> = { user: idUtente(req) };
 
     if (req.query.stato) filtro.stato = valoreAmmesso(req.query.stato, STATI, "stato");
     if (req.query.q) {
-        // ricerca "contiene", senza distinguere maiuscole/minuscole
+        // ricerca senza differenziare maiuscole e minuscole
         filtro.titolo = { $regex: escapeRegex(String(req.query.q)), $options: "i" };
     }
 
     const ordina = ORDINAMENTI[String(req.query.ordina ?? "recenti")] ?? ORDINAMENTI.recenti;
     const { pagina, limite, skip } = leggiPaginazione(req.query);
 
-    // Le due query partono insieme (Promise.all) invece che una dopo l'altra
+    // faccio le due query insieme
     const [risultati, totale] = await Promise.all([
         Contenuto.find(filtro).sort(ordina).skip(skip).limit(limite),
         Contenuto.countDocuments(filtro),
@@ -127,9 +111,7 @@ export async function elenco(req: Request, res: Response) {
 // ------------------------------------------------------------
 // GET /api/libri/statistiche
 // ------------------------------------------------------------
-// Esempio di aggregazione MongoDB: quanti libri per stato
-// e la media dei voti dati dall'utente.
-// Risposta: { totale, perStato: { letto: 3, da_leggere: 5 }, voti: { numero, media } }
+// conto quanti libri ci sono per stato e la media dei voti dell'utente
 export async function statistiche(req: Request, res: Response) {
     const userId = idUtente(req);
 
@@ -141,7 +123,7 @@ export async function statistiche(req: Request, res: Response) {
         ]),
     ]);
 
-    // Trasforma [{ _id: "letto", totale: 3 }] in { letto: 3 }
+    // trasformo [{ _id: "letto", totale: 3 }] in { letto: 3 }
     const inOggetto = (righe: any[]) => Object.fromEntries(righe.map((r) => [r._id, r.totale]));
 
     return ok(res, {
@@ -161,7 +143,7 @@ export async function dettaglio(req: Request, res: Response) {
     const userId = idUtente(req);
     const contenuto = await trovaMio(Contenuto, req.params.id, userId, "Libro");
 
-    // Valutazione personale (se c'è) insieme al libro
+    // prendo anche la valutazione dell'utente, se c'è
     const valutazione = await Valutazione.findOne({ user: userId, contenuto: contenuto._id }).select("voto updatedAt");
 
     const risposta: Record<string, unknown> = { ...contenuto.toObject(), valutazione };
@@ -177,9 +159,7 @@ export async function dettaglio(req: Request, res: Response) {
 // ------------------------------------------------------------
 // PATCH /api/libri/:id          body: { note?, pagine? }
 // ------------------------------------------------------------
-// Aggiorna SOLO i campi inviati e SOLO quelli ammessi (il client non può
-// cambiare titolo, user, idEsterno...).
-// "pagine" serve quando Open Library non conosce il numero di pagine.
+// aggiorno solo i campi che l'utente può cambiare
 export async function aggiorna(req: Request, res: Response) {
     const body = req.body ?? {};
     const modifiche: Record<string, unknown> = {};
@@ -195,8 +175,7 @@ export async function aggiorna(req: Request, res: Response) {
         throw new AppError("Nessun campo da aggiornare (ammessi: note, pagine)", 400);
     }
 
-    // returnDocument: "after" -> restituisce il documento DOPO la modifica
-    // (in Mongoose 9 sostituisce il vecchio { new: true })
+    // ritorno il documento già aggiornato
     const contenuto = await Contenuto.findOneAndUpdate(
         { _id: req.params.id, user: idUtente(req) },
         modifiche,
@@ -208,12 +187,9 @@ export async function aggiorna(req: Request, res: Response) {
 }
 
 // ------------------------------------------------------------
-// PATCH /api/libri/:id/stato    body: { stato }   (da_leggere | in_lettura | letto)
+// PATCH /api/libri/:id/stato    body: { stato }
 // ------------------------------------------------------------
-// Segna il libro come "da leggere", "in lettura" o "letto".
-// Piccola regola in più, per tenere coerente l'avanzamento:
-//   - "da_leggere" -> la pagina corrente torna a 0
-//   - "letto"      -> la pagina corrente diventa l'ultima (100%), se sappiamo le pagine
+// aggiorno lo stato del libro e azzero o porto a fine pagina se serve
 export async function aggiornaStato(req: Request, res: Response) {
     campiObbligatori(req.body, ["stato"]);
     const stato = valoreAmmesso(req.body.stato, STATI, "stato");
@@ -241,7 +217,7 @@ export async function aggiornaProgresso(req: Request, res: Response) {
         throw new AppError('Puoi aggiornare la pagina corrente solo dei libri "in_lettura"', 400);
     }
 
-    // La pagina non può superare il numero di pagine del libro (se lo conosciamo)
+    // la pagina non può superare il totale, se lo sappiamo
     const massimo = contenuto.pagine ?? 100000;
     const paginaCorrente = numeroTra(req.body.paginaCorrente, 0, massimo, "paginaCorrente");
     if (!Number.isInteger(paginaCorrente)) throw new AppError('"paginaCorrente" deve essere un numero intero', 400);
@@ -249,7 +225,7 @@ export async function aggiornaProgresso(req: Request, res: Response) {
     contenuto.paginaCorrente = paginaCorrente;
     await contenuto.save();
 
-    // contenuto.percentuale è il campo calcolato del modello (null se non sappiamo le pagine)
+    // percentuale è un campo calcolato del modello
     return ok(res, {
         paginaCorrente: contenuto.paginaCorrente,
         pagine: contenuto.pagine,
@@ -261,9 +237,7 @@ export async function aggiornaProgresso(req: Request, res: Response) {
 // ------------------------------------------------------------
 // DELETE /api/libri/:id
 // ------------------------------------------------------------
-// Elimina il libro E tutto ciò che lo riguarda ("a cascata"):
-// - lo toglie da tutti gli scaffali dell'utente ($pull)
-// - cancella recensioni e valutazione collegate
+// tolgo il libro e anche commenti e valutazioni collegate
 export async function elimina(req: Request, res: Response) {
     const userId = idUtente(req);
     const contenuto = await Contenuto.findOneAndDelete({ _id: req.params.id, user: userId });

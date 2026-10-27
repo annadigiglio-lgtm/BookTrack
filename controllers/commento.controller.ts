@@ -1,16 +1,8 @@
 // ============================================================
-// controllers/commento.controller.ts  –  Recensioni dei libri
+// controllers/commento.controller.ts
 // ============================================================
-// La "recensione" di un libro è un commento: se ne possono scrivere quante si vogliono.
-// Si recensiscono solo i libri SALVATI dall'utente.
-// Prima di tutto si controlla che il libro esista e sia suo (-> 404).
-//
-// | Funzione  | Rotta                                         | Body   |
-// |-----------|-----------------------------------------------|--------|
-// | elenco    | GET    /api/libri/:contenutoId/commenti   |        |
-// | crea      | POST   /api/libri/:contenutoId/commenti   | testo  |
-// | aggiorna  | PATCH  /api/commenti/:id                      | testo  |
-// | elimina   | DELETE /api/commenti/:id                      |        |
+// qui gestisco le recensioni dei libri salvati
+// prima controllo che il libro appartenga all'utente
 // ============================================================
 
 import type { Request, Response } from "express";
@@ -39,7 +31,7 @@ export async function elenco(req: Request, res: Response) {
     const userId = idUtente(req);
     await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
 
-    // dal più recente; populate("user", "nome") aggiunge il nome dell'autore
+    // li prendo dal più recente e aggiungo il nome dell'autore
     const commenti = await Commento.find({ contenuto: req.params.contenutoId })
         .sort({ createdAt: -1 })
         .populate("user", "nome");
@@ -61,7 +53,7 @@ export async function crea(req: Request, res: Response) {
 // ------------------------------------------------------------
 // PATCH /api/commenti/:id      body: { testo }
 // ------------------------------------------------------------
-// Solo l'autore può modificarlo: la query cerca per _id E user.
+// solo l'autore può cambiarlo
 export async function aggiorna(req: Request, res: Response) {
     const testo = leggiTesto(req.body);
     const commento = await Commento.findOneAndUpdate(

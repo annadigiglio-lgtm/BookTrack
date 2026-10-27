@@ -1,17 +1,8 @@
 // ============================================================
 // controllers/ricerca.controller.ts
 // ============================================================
-// Il client chiama il NOSTRO server, e il nostro server chiama l'API esterna
-// (così la chiave API resta segreta sul server).
-//
-// | Funzione   | Rotta                                 | Esempio                                   |
-// |------------|---------------------------------------|-------------------------------------------|
-// | cerca      | GET /api/ricerca                      | /api/ricerca?q=dune&pagina=1               |
-// | dettaglio  | GET /api/ricerca/:tipo/:idEsterno     | /api/ricerca/book/OL45804W                 |
-//
-// Ricerca per titolo, autore o ISBN: ?campo=titolo|autore|isbn
-//   /api/ricerca?q=tolkien&campo=autore
-//   /api/ricerca?q=9780441172719&campo=isbn
+// il cliente chiama il nostro server, poi noi chiamiamo l'API esterna
+// così la chiave resta sul server
 // ============================================================
 
 import type { Request, Response } from "express";
@@ -26,13 +17,13 @@ import { valoreAmmesso } from "../utils/validazione";
 // GET /api/ricerca?q=...&tipo=...&pagina=...
 // ------------------------------------------------------------
 export async function cerca(req: Request, res: Response) {
-    // Accettiamo sia ?q= che ?query= (non si sa mai cosa scrive il docente in Postman)
+    // accetto anche query= oltre a q, così funziona con richieste diverse
     const q = String(req.query.q ?? req.query.query ?? "").trim();
     if (!q) {
         throw new AppError('Parametro "q" obbligatorio (es. /api/ricerca?q=batman)', 400);
     }
 
-    // Il tipo è facoltativo: se non c'è usiamo il primo di TIPI_CONTENUTO ("book")
+    // se non arriva il tipo, uso il primo che abbiamo configurato
     const tipo = valoreAmmesso(req.query.tipo ?? TIPI_CONTENUTO[0], TIPI_CONTENUTO, "tipo");
     const pagina = Math.max(1, Number.parseInt(String(req.query.pagina ?? "1"), 10) || 1);
 
@@ -46,9 +37,7 @@ export async function cerca(req: Request, res: Response) {
 // ------------------------------------------------------------
 // GET /api/ricerca/:tipo/:idEsterno
 // ------------------------------------------------------------
-// Restituisce il dettaglio completo del libro (titolo, autori, anno, pagine,
-// generi, copertina...) e in più "salvato": l'_id del libro se l'utente
-// l'ha già salvato (il client sa se mostrare "Salva" o "Già salvato").
+// restituisco anche se il libro è già stato salvato dall'utente
 export async function dettaglio(req: Request, res: Response) {
     const tipo = valoreAmmesso(req.params.tipo, TIPI_CONTENUTO, "tipo");
     const idEsterno = String(req.params.idEsterno);

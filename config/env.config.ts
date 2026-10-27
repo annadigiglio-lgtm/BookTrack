@@ -1,19 +1,10 @@
 // ============================================================
 // config/env.config.ts
 // ============================================================
-// Scopo: leggere TUTTE le variabili del .env in un solo posto.
-// Gli altri file importano "env" da qui e non usano mai process.env
-// direttamente. Vantaggi:
-//   - se una variabile cambia nome, si modifica solo questo file
-//   - i valori di default sono tutti qui
-//   - le variabili obbligatorie vengono controllate all'avvio
-//
-// Bun legge il file .env da solo: non serve "dotenv".
-// (Se usaste Node: import "dotenv/config" come prima riga di index.ts)
+// qui metto i valori del .env
 // ============================================================
 
-// Legge una variabile obbligatoria: se manca, il server NON parte.
-// Meglio un errore chiaro subito che token firmati con "undefined".
+// prendo un valore obbligatorio e blocco il server se manca
 function obbligatoria(nome: string): string {
     const valore = process.env[nome];
     if (!valore) {
@@ -25,15 +16,15 @@ function obbligatoria(nome: string): string {
 export const env = {
     port: Number(process.env.PORT) || 3000,
 
-    // --- Database ---
+    // database
     mongoUri: process.env.MONGO_URI || "mongodb://127.0.0.1:27017/booktrack",
 
-    // --- JWT ---
+    // JWT
     jwtSecret: obbligatoria("JWT_SECRET"),
     jwtExpiresIn: process.env.JWT_EXPIRES_IN || "1h",
 
-    // --- Open Library (libri) ---
-    // Non serve nessuna chiave API: è gratuita e libera.
+    // Open Library
+    // non serve chiave API
     openLibrary: {
         baseUrl: process.env.OPENLIBRARY_BASE_URL || "https://openlibrary.org",
         coversUrl: process.env.OPENLIBRARY_COVERS_URL || "https://covers.openlibrary.org",

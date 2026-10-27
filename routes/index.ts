@@ -1,8 +1,8 @@
 // ============================================================
-// routes/index.ts  –  Router principale: raccoglie tutti gli altri
+// routes/index.ts
 // ============================================================
-// In app.ts basta   app.use("/api", routes)
-// Mappa completa delle rotte: vedi README.md
+// qui monto tutte le rotte dell'api
+// app.ts usa questo router sotto /api
 // ============================================================
 
 import { Router } from "express";
@@ -14,15 +14,15 @@ import commentoRoutes from "./commento.routes";
 
 const router = Router();
 
-// Controllo veloce che il server sia acceso: GET /api/health
+// check veloce per vedere se il server è vivo
 router.get("/health", (_req, res) => {
     res.json({ success: true, data: { stato: "ok", ora: new Date().toISOString() } });
 });
 
-router.use("/auth", authRoutes);          // registrazione, login, logout
-router.use("/ricerca", ricercaRoutes);    // ricerca su Open Library
-router.use("/libri", contenutoRoutes);    // libri salvati (+ recensioni e valutazione annidate)
+router.use("/auth", authRoutes);          // login, registrazione e profilo
+router.use("/ricerca", ricercaRoutes);    // cerca libri fuori
+router.use("/libri", contenutoRoutes);    // libri salvati dell'utente
 router.use("/scaffali", listaRoutes);     // scaffali personali
-router.use("/commenti", commentoRoutes);  // modifica/eliminazione recensioni
+router.use("/commenti", commentoRoutes);  // modifica e cancella recensioni
 
 export default router;

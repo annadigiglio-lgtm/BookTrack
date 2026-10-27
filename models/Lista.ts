@@ -1,11 +1,8 @@
 // ============================================================
 // models/Lista.ts
 // ============================================================
-// Uno SCAFFALE personale con nome libero: "Da leggere", "In lettura",
-// "Letti", "Fantasy"... Contiene dei libri SALVATI dall'utente.
-//
-// Lo "stato" di lettura (da_leggere / in_lettura / letto) sta sul libro,
-// NON sullo scaffale: così l'utente può creare tutti gli scaffali che vuole.
+// qui salvo gli scaffali creati dall'utente
+// lo stato del libro sta sul libro, non sullo scaffale
 // ============================================================
 
 import mongoose, { Schema } from "mongoose";

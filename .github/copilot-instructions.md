@@ -1,10 +1,12 @@
 # GitHub Copilot instructions
 
+
+
 <!-- github-copilot-toolbox:mcp-skills-awareness-begin -->
 
 ### MCP & Skills awareness (GitHub Copilot Toolbox)
 
-_Last synced: 2026-10-27T09:17:27.370Z._
+_Last synced: 2026-10-27T10:26:24.087Z._
 
 - **Full report:** `.github/copilot-toolbox-mcp-skills-awareness.md` in this workspace (auto-overwritten on each scan). Use it as ground truth for configured servers and skill folders.
 - **MCP:** For **live tools**, use **Copilot Chat → Agent** and **trust/start** the right servers in the MCP UI.
