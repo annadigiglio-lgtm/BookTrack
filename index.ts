@@ -1,18 +1,4 @@
-<<<<<<< HEAD
-// ============================================================
-// index.ts
-// ============================================================
-// avvio del server
-// bun legge .env da solo
-//
-// ordine:
-// 1. connetto MongoDB
-// 2. se va bene, faccio partire Express
-// se il database non risponde, chiudo il processo
-// ============================================================
 
-=======
->>>>>>> 3ec340df4de28ebd257642dcde881671f7babe7f
 import app from "./app";
 import { connectDB } from "./config/db.config";
 import { env } from "./config/env.config";
