@@ -12,4 +12,3 @@ Da sole:
 - **Cerca** salva il primo `idEsterno`, **Salva libro** salva `contenutoId`, **Crea scaffale** salva `listaId`, **Aggiungi recensione** salva `commentoId`.
 - Ogni richiesta controlla lo status atteso.
 
-Prima di esportare o consegnare: svuota la variabile `token`.
