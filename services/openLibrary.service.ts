@@ -1,6 +1,6 @@
-// ============================================================
+
 // services/openLibrary.service.ts  –  Integrazione Open Library (libri)
-// ============================================================
+
 // Documentazione: https://openlibrary.org/developers/api
 // Non serve nessuna chiave API.
 //
@@ -12,7 +12,7 @@
 //                autori, anno, numero di pagine e copertina
 //
 // Copertina: https://covers.openlibrary.org/b/id/{cover_i}-M.jpg
-// ============================================================
+
 
 import { env } from "../config/env.config";
 import type { TipoContenuto } from "../config/progetto.config";

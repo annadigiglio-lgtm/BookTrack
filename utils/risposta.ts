@@ -1,6 +1,6 @@
-// ============================================================
+
 // utils/risposta.ts  –  usato da TUTTI
-// ============================================================
+
 // Formato UNICO delle risposte (deciso una volta, uguale per tutti):
 //
 //   successo ->  { "success": true,  "data": ... }
@@ -11,7 +11,7 @@
 //
 //     return ok(res, lista);          // 200
 //     return ok(res, lista, 201);     // 201 Created
-// ============================================================
+
 
 import type { Response } from "express";
 

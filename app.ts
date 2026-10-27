@@ -1,6 +1,6 @@
-// ============================================================
+
 // app.ts
-// ============================================================
+
 // qui preparo l'app Express ma non la avvio
 // così posso importarla nei test senza accendere il server
 //
@@ -11,7 +11,7 @@
 // 4. metto le rotte /api
 // 5. gestisco 404
 // 6. metto il gestore errori in fondo
-// ============================================================
+
 
 import express from "express";
 import passport from "./config/passport.config"; // mi serve per registrare la strategia JWT

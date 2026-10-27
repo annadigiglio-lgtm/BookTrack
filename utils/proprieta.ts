@@ -1,6 +1,6 @@
-// ============================================================
+
 // utils/proprieta.ts  –  usato da TUTTI
-// ============================================================
+
 // "Ogni utente può gestire SOLO i propri dati" (requisito di entrambe le prove).
 //
 // Il trucco: cercare SEMPRE per _id E user insieme:
@@ -10,7 +10,7 @@
 //
 // Questa funzione fa proprio questo e lancia l'errore se non trova nulla:
 //     const lista = await trovaMio(Lista, req.params.id, idUtente(req), "Lista");
-// ============================================================
+
 
 import type { Model } from "mongoose";
 import { AppError } from "./AppError";

@@ -1,6 +1,6 @@
-// ============================================================
+
 // utils/utente.ts  –  usato da TUTTI
-// ============================================================
+
 // Restituisce l'_id dell'utente loggato.
 // Passport (middleware/auth.middleware.ts) mette l'utente in req.user;
 // TypeScript però non sa che req.user ha "_id", quindi nella prova
@@ -8,8 +8,7 @@
 //
 //     const userId = idUtente(req);
 //
-// ⚠️ Usatelo SOLO nelle rotte protette (dopo il middleware "autentica").
-// ============================================================
+//  Usatelo SOLO nelle rotte protette (dopo il middleware "autentica").
 
 import type { Request } from "express";
 import { AppError } from "./AppError";

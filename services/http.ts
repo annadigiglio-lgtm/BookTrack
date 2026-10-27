@@ -1,6 +1,6 @@
-// ============================================================
+
 // services/http.ts
-// ============================================================
+
 // due funzioni che mi servono per chiamare API esterne
 //
 // 1. costruisciUrl
@@ -8,7 +8,7 @@
 //
 // 2. chiamaApi
 //   faccio la fetch e trasformo gli errori in quelli del nostro backend
-// ============================================================
+
 
 import { AppError } from "../utils/AppError";
 

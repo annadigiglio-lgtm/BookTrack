@@ -1,15 +1,15 @@
-// ============================================================
+
 // types/catalogo.ts
-// ============================================================
+
 // Il "CONTRATTO" tra i service delle API esterne e il resto del progetto.
-//
+
 // Ogni API restituisce i dati in modo diverso. Open Library, per esempio:
-//   { key: "/works/OL45804W", title: "Dune", cover_i: 123, author_name: [...] }
-//
+//  { key: "/works/OL45804W", title: "Dune", cover_i: 123, author_name: [...] }
+
 // Il service li TRADUCE ("normalizza") in questo formato comune.
 // Così controller e modelli non sanno nulla dell'API usata, e cambiare
 // API = scrivere un nuovo service che rispetta queste interfacce.
-// ============================================================
+
 
 import type { TipoContenuto } from "../config/progetto.config";
 

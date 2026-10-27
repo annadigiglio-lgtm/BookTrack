@@ -1,12 +1,12 @@
-// ============================================================
+
 // services/catalogo.service.ts  –  l'unico service usato dai controller
-// ============================================================
+
 // "Smistatore": in base al TIPO sceglie il service dell'API giusta.
 // In BookTrack c'è un solo tipo ("book") collegato a Open Library.
 //
 // I controller importano SOLO da qui, così se cambia l'API
 // i controller non si toccano.
-// ============================================================
+
 
 import type { TipoContenuto } from "../config/progetto.config";
 import type { ServizioCatalogo } from "../types/catalogo";

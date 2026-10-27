@@ -5,8 +5,8 @@
 //
 // Credenziali:  prova@test.it  /  password123
 //
-// ⚠️ Cancella SOLO l'utente di prova e i suoi dati, non tutto il database.
-// ============================================================
+//  Cancella SOLO l'utente di prova e i suoi dati, non tutto il database.
+
 
 import bcrypt from "bcryptjs";
 import mongoose from "mongoose";

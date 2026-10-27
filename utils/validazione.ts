@@ -1,6 +1,6 @@
-// ============================================================
+
 // utils/validazione.ts  –  usato da TUTTI
-// ============================================================
+
 // Piccole funzioni per controllare body, query e params.
 // Se il controllo fallisce LANCIANO un AppError 400, quindi nel controller
 // basta chiamarle: se si arriva alla riga dopo, i dati sono validi.
@@ -9,7 +9,6 @@
 //     const stato = valoreAmmesso(req.body.stato, STATI, "stato");
 //
 // Così non servono pacchetti esterni (express-validator, zod...).
-// ============================================================
 
 import mongoose from "mongoose";
 import { AppError } from "./AppError";
