@@ -1,6 +1,4 @@
 {
-  // Stesso tsconfig della prova ShowTracker (quello creato da "bun init").
-  // Non serve toccarlo il giorno della verifica.
   "compilerOptions": {
     "lib": ["ESNext"],
     "target": "ESNext",
