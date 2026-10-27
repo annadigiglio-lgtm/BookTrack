@@ -7,7 +7,6 @@
     "allowJs": true,
     "types": ["bun"],
 
-    // Bun esegue i .ts direttamente: niente compilazione, niente cartella dist
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
@@ -18,8 +17,6 @@
     "noFallthroughCasesInSwitch": true,
     "noImplicitOverride": true,
 
-    // Lasciati "morbidi" apposta: durante la verifica non vogliamo perdere
-    // tempo su errori di tipo che non bloccano l'esecuzione.
     "noUncheckedIndexedAccess": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
