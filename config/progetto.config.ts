@@ -1,7 +1,6 @@
 
 // config/progetto.config.ts
-
-// qui metto le regole del progetto
+// regole del progetto
 
 // 1. tipi di contenuto
 // qui c'è solo il libro
