@@ -1,8 +1,7 @@
-// ============================================================
+
 // config/passport.config.ts
-// ============================================================
+
 // qui preparo la validazione JWT per le rotte protette
-// ============================================================
 
 import passport from "passport";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
