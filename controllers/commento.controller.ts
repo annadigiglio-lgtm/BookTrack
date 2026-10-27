@@ -24,9 +24,9 @@ function leggiTesto(body: any): string {
     return testo;
 }
 
-// ------------------------------------------------------------
+
 // GET /api/libri/:contenutoId/commenti
-// ------------------------------------------------------------
+
 export async function elenco(req: Request, res: Response) {
     const userId = idUtente(req);
     await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
@@ -38,9 +38,9 @@ export async function elenco(req: Request, res: Response) {
     return ok(res, commenti);
 }
 
-// ------------------------------------------------------------
+
 // POST /api/libri/:contenutoId/commenti     body: { testo }
-// ------------------------------------------------------------
+
 export async function crea(req: Request, res: Response) {
     const userId = idUtente(req);
     const testo = leggiTesto(req.body);
@@ -50,9 +50,9 @@ export async function crea(req: Request, res: Response) {
     return ok(res, commento, 201);
 }
 
-// ------------------------------------------------------------
+
 // PATCH /api/commenti/:id      body: { testo }
-// ------------------------------------------------------------
+
 // solo l'autore può cambiarlo
 export async function aggiorna(req: Request, res: Response) {
     const testo = leggiTesto(req.body);
@@ -65,11 +65,12 @@ export async function aggiorna(req: Request, res: Response) {
     return ok(res, commento);
 }
 
-// ------------------------------------------------------------
+
 // DELETE /api/commenti/:id
-// ------------------------------------------------------------
+
 export async function elimina(req: Request, res: Response) {
     const commento = await Commento.findOneAndDelete({ _id: req.params.id, user: idUtente(req) });
     if (!commento) throw new AppError("Commento non trovato", 404);
     return ok(res, { messaggio: "Commento eliminato", id: commento._id });
 }
+

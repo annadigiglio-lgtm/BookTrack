@@ -1,9 +1,9 @@
-// ============================================================
+ 
 // controllers/auth.controller.ts
-// ============================================================
+
 // qui gestisco registrazione, login e profilo utente
 // le rotte stanno in routes/auth.routes.ts
-// ============================================================
+
 
 import type { Request, Response } from "express";
 import bcrypt from "bcryptjs";
@@ -28,9 +28,8 @@ function creaToken(userId: unknown): string {
     });
 }
 
-// ------------------------------------------------------------
 // POST /api/auth/register      body: { nome, email, password }
-// ------------------------------------------------------------
+
 export async function register(req: Request, res: Response) {
     campiObbligatori(req.body, ["nome", "email", "password"]);
     const { nome, email, password } = req.body;
@@ -61,9 +60,9 @@ export async function register(req: Request, res: Response) {
     return ok(res, utente, 201);
 }
 
-// ------------------------------------------------------------
+
 // POST /api/auth/login         body: { email, password }
-// ------------------------------------------------------------
+
 export async function login(req: Request, res: Response) {
     campiObbligatori(req.body, ["email", "password"]);
     const { email, password } = req.body;
@@ -91,26 +90,26 @@ export async function login(req: Request, res: Response) {
     });
 }
 
-// ------------------------------------------------------------
+
 // POST /api/auth/logout        (protetta)
-// ------------------------------------------------------------
+
 // il JWT non si cancella da solo, quindi lo salvo a null nel database
 export async function logout(req: Request, res: Response) {
     await User.updateOne({ _id: idUtente(req) }, { token: null });
     return ok(res, { messaggio: "Logout effettuato" });
 }
 
-// ------------------------------------------------------------
+
 // GET /api/auth/me             (protetta)
-// ------------------------------------------------------------
+
 // req.user arriva da Passport
 export async function me(req: Request, res: Response) {
     return ok(res, req.user);
 }
 
-// ------------------------------------------------------------
+
 // PATCH /api/auth/me   body: { nome?, passwordAttuale?, nuovaPassword? }
-// ------------------------------------------------------------
+
 export async function aggiornaMe(req: Request, res: Response) {
     const { nome, passwordAttuale, nuovaPassword } = req.body ?? {};
     const utente = await User.findById(idUtente(req)).select("+password");
@@ -136,9 +135,9 @@ export async function aggiornaMe(req: Request, res: Response) {
     return ok(res, utente);
 }
 
-// ------------------------------------------------------------
+
 // DELETE /api/auth/me
-// ------------------------------------------------------------
+
 // cancello anche tutti i dati legati a questo utente
 export async function eliminaMe(req: Request, res: Response) {
     const userId = idUtente(req);
@@ -151,3 +150,4 @@ export async function eliminaMe(req: Request, res: Response) {
     await User.deleteOne({ _id: userId });
     return ok(res, { messaggio: "Account e dati eliminati" });
 }
+

@@ -13,9 +13,9 @@ import { AppError } from "../utils/AppError";
 import { ok } from "../utils/risposta";
 import { valoreAmmesso } from "../utils/validazione";
 
-// ------------------------------------------------------------
+
 // GET /api/ricerca?q=...&tipo=...&pagina=...
-// ------------------------------------------------------------
+
 export async function cerca(req: Request, res: Response) {
     // accetto anche query= oltre a q, così funziona con richieste diverse
     const q = String(req.query.q ?? req.query.query ?? "").trim();
@@ -34,9 +34,9 @@ export async function cerca(req: Request, res: Response) {
     return ok(res, risultato);
 }
 
-// ------------------------------------------------------------
+
 // GET /api/ricerca/:tipo/:idEsterno
-// ------------------------------------------------------------
+
 // restituisco anche se il libro è già stato salvato dall'utente
 export async function dettaglio(req: Request, res: Response) {
     const tipo = valoreAmmesso(req.params.tipo, TIPI_CONTENUTO, "tipo");
@@ -49,3 +49,4 @@ export async function dettaglio(req: Request, res: Response) {
 
     return ok(res, { ...risultato, salvato: giaSalvato });
 }
+

@@ -14,9 +14,9 @@ import { ok } from "../utils/risposta";
 import { idUtente } from "../utils/utente";
 import { numeroTra } from "../utils/validazione";
 
-// ------------------------------------------------------------
+
 // GET /api/libri/:contenutoId/valutazione
-// ------------------------------------------------------------
+
 export async function leggi(req: Request, res: Response) {
     const userId = idUtente(req);
     await trovaMio(Contenuto, req.params.contenutoId, userId, "Libro");
@@ -26,9 +26,9 @@ export async function leggi(req: Request, res: Response) {
     return ok(res, valutazione);
 }
 
-// ------------------------------------------------------------
+
 // PUT /api/libri/:contenutoId/valutazione     body: { voto }
-// ------------------------------------------------------------
+
 export async function imposta(req: Request, res: Response) {
     const userId = idUtente(req);
     const voto = numeroTra(req.body?.voto, VOTO_MIN, VOTO_MAX, "voto");
@@ -46,11 +46,12 @@ export async function imposta(req: Request, res: Response) {
     return ok(res, valutazione);
 }
 
-// ------------------------------------------------------------
+
 // DELETE /api/libri/:contenutoId/valutazione
-// ------------------------------------------------------------
+
 export async function elimina(req: Request, res: Response) {
     const valutazione = await Valutazione.findOneAndDelete({ user: idUtente(req), contenuto: req.params.contenutoId });
     if (!valutazione) throw new AppError("Nessuna valutazione da eliminare", 404);
     return ok(res, { messaggio: "Valutazione eliminata" });
 }
+

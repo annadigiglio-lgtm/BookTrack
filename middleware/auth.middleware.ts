@@ -35,11 +35,11 @@ export function autentica(req: Request, res: Response, next: NextFunction) {
     })(req, res, next);
 }
 
-// ------------------------------------------------------------
+
 // Ruoli (es. rotte solo per admin). Da usare DOPO autentica:
 //     router.get("/admin/utenti", autentica, soloRuolo("admin"), elencoUtenti);
 // 403 = sei autenticato ma non hai il permesso.
-// ------------------------------------------------------------
+
 export function soloRuolo(...ruoli: string[]) {
     return (req: Request, _res: Response, next: NextFunction) => {
         const ruolo = (req.user as any)?.ruolo;
@@ -49,3 +49,4 @@ export function soloRuolo(...ruoli: string[]) {
         next();
     };
 }
+

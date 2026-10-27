@@ -14,9 +14,9 @@ import { ok } from "../utils/risposta";
 import { idUtente } from "../utils/utente";
 import { campiObbligatori, isObjectId } from "../utils/validazione";
 
-// ------------------------------------------------------------
+
 // POST /api/scaffali       body: { nome, descrizione? }
-// ------------------------------------------------------------
+
 export async function crea(req: Request, res: Response) {
     campiObbligatori(req.body, ["nome"]);
     const userId = idUtente(req);
@@ -30,9 +30,9 @@ export async function crea(req: Request, res: Response) {
     return ok(res, lista, 201);
 }
 
-// ------------------------------------------------------------
+
 // GET /api/scaffali
-// ------------------------------------------------------------
+
 // ritorno i scaffali con il numero di libri dentro
 export async function elenco(req: Request, res: Response) {
     const liste = await Lista.find({ user: idUtente(req) }).sort({ createdAt: 1 }).lean();
@@ -40,9 +40,9 @@ export async function elenco(req: Request, res: Response) {
     return ok(res, risultato);
 }
 
-// ------------------------------------------------------------
+
 // GET /api/scaffali/:id
-// ------------------------------------------------------------
+
 // con populate metto dentro i libri completi invece di soli id
 export async function dettaglio(req: Request, res: Response) {
     const lista = await Lista.findOne({ _id: req.params.id, user: idUtente(req) }).populate("contenuti");
@@ -50,9 +50,9 @@ export async function dettaglio(req: Request, res: Response) {
     return ok(res, lista);
 }
 
-// ------------------------------------------------------------
+
 // PATCH /api/scaffali/:id  body: { nome?, descrizione? }
-// ------------------------------------------------------------
+
 export async function aggiorna(req: Request, res: Response) {
     const userId = idUtente(req);
     const lista = await trovaMio(Lista, req.params.id, userId, "Scaffale");
@@ -77,18 +77,18 @@ export async function aggiorna(req: Request, res: Response) {
     return ok(res, lista);
 }
 
-// ------------------------------------------------------------
+
 // DELETE /api/scaffali/:id
-// ------------------------------------------------------------
+
 export async function elimina(req: Request, res: Response) {
     const lista = await Lista.findOneAndDelete({ _id: req.params.id, user: idUtente(req) });
     if (!lista) throw new AppError("Scaffale non trovato", 404);
     return ok(res, { messaggio: "Scaffale eliminato", id: lista._id });
 }
 
-// ------------------------------------------------------------
+
 // POST /api/scaffali/:id/libri     body: { contenutoId }
-// ------------------------------------------------------------
+
 // qui aggiungo un libro già salvato a uno scaffale
 export async function aggiungiContenuto(req: Request, res: Response) {
     campiObbligatori(req.body, ["contenutoId"]);
@@ -110,9 +110,9 @@ export async function aggiungiContenuto(req: Request, res: Response) {
     return ok(res, lista);
 }
 
-// ------------------------------------------------------------
+
 // DELETE /api/scaffali/:id/libri/:contenutoId
-// ------------------------------------------------------------
+
 // tolgo il libro dallo scaffale ma non lo cancello dal salvataggio
 export async function rimuoviContenuto(req: Request, res: Response) {
     const lista = await Lista.findOneAndUpdate(
@@ -125,9 +125,9 @@ export async function rimuoviContenuto(req: Request, res: Response) {
     return ok(res, lista);
 }
 
-// ------------------------------------------------------------
+
 // POST /api/scaffali/:id/libri/:contenutoId/sposta     body: { aScaffaleId }
-// ------------------------------------------------------------
+
 // sposto un libro da uno scaffale a un altro
 export async function spostaContenuto(req: Request, res: Response) {
     campiObbligatori(req.body, ["aScaffaleId"]);
@@ -155,3 +155,4 @@ export async function spostaContenuto(req: Request, res: Response) {
 
     return ok(res, arrivo);
 }
+

@@ -31,9 +31,9 @@ function escapeRegex(testo: string) {
     return testo.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-// ------------------------------------------------------------
+
 // POST /api/libri      body: { idEsterno, stato?, listaId? }
-// ------------------------------------------------------------
+
 // il client manda solo l'id di Open Library e noi prendiamo i dati reali dall'API
 export async function salva(req: Request, res: Response) {
     campiObbligatori(req.body, ["idEsterno"]);
@@ -77,9 +77,9 @@ export async function salva(req: Request, res: Response) {
     return ok(res, contenuto, 201);
 }
 
-// ------------------------------------------------------------
+
 // GET /api/libri?stato=&q=&ordina=&pagina=&limite=
-// ------------------------------------------------------------
+
 // i filtri sono tutti opzionali
 export async function elenco(req: Request, res: Response) {
     const filtro: Record<string, unknown> = { user: idUtente(req) };
@@ -108,9 +108,9 @@ export async function elenco(req: Request, res: Response) {
     });
 }
 
-// ------------------------------------------------------------
+
 // GET /api/libri/statistiche
-// ------------------------------------------------------------
+
 // conto quanti libri ci sono per stato e la media dei voti dell'utente
 export async function statistiche(req: Request, res: Response) {
     const userId = idUtente(req);
@@ -136,9 +136,9 @@ export async function statistiche(req: Request, res: Response) {
     });
 }
 
-// ------------------------------------------------------------
+
 // GET /api/libri/:id            (?completo=true per i dati completi dall'API)
-// ------------------------------------------------------------
+
 export async function dettaglio(req: Request, res: Response) {
     const userId = idUtente(req);
     const contenuto = await trovaMio(Contenuto, req.params.id, userId, "Libro");
@@ -156,9 +156,9 @@ export async function dettaglio(req: Request, res: Response) {
     return ok(res, risposta);
 }
 
-// ------------------------------------------------------------
+
 // PATCH /api/libri/:id          body: { note?, pagine? }
-// ------------------------------------------------------------
+
 // aggiorno solo i campi che l'utente può cambiare
 export async function aggiorna(req: Request, res: Response) {
     const body = req.body ?? {};
@@ -186,9 +186,9 @@ export async function aggiorna(req: Request, res: Response) {
     return ok(res, contenuto);
 }
 
-// ------------------------------------------------------------
+
 // PATCH /api/libri/:id/stato    body: { stato }
-// ------------------------------------------------------------
+
 // aggiorno lo stato del libro e azzero o porto a fine pagina se serve
 export async function aggiornaStato(req: Request, res: Response) {
     campiObbligatori(req.body, ["stato"]);
@@ -204,9 +204,9 @@ export async function aggiornaStato(req: Request, res: Response) {
     return ok(res, contenuto);
 }
 
-// ------------------------------------------------------------
+
 // PATCH /api/libri/:id/progresso    body: { paginaCorrente }
-// ------------------------------------------------------------
+
 // Aggiorna la pagina a cui è arrivato l'utente e restituisce la percentuale.
 // Si può fare solo per i libri "in lettura".
 export async function aggiornaProgresso(req: Request, res: Response) {
@@ -234,9 +234,9 @@ export async function aggiornaProgresso(req: Request, res: Response) {
     });
 }
 
-// ------------------------------------------------------------
+
 // DELETE /api/libri/:id
-// ------------------------------------------------------------
+
 // tolgo il libro e anche commenti e valutazioni collegate
 export async function elimina(req: Request, res: Response) {
     const userId = idUtente(req);
@@ -251,3 +251,4 @@ export async function elimina(req: Request, res: Response) {
 
     return ok(res, { messaggio: "Libro eliminato", id: contenuto._id });
 }
+
